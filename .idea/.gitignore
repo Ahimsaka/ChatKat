@@ -1,5 +1,9 @@
 # Created by https://www.gitignore.io/api/java,gradle
 
+# ignore the place where i have the token saved
+/src/main/java/Token.java
+
+# ignore log files
 /logs/
 ### Java ###
 *.class

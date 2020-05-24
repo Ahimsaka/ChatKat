@@ -10,18 +10,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Functioning version of the new style. Woohoo.">
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-10.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-12.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-18.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-19.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-20.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-21.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-22.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-23.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-24.0.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-    </list>
+    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Functioning version of the new style. Woohoo." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -102,7 +91,7 @@
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="settings.editor.selected.configurable" value="project.propCompiler" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.github.ui.GithubSettingsConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
@@ -301,7 +290,14 @@
       <option name="project" value="LOCAL" />
       <updated>1590356055446</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Functioning version of the new style. Woohoo.">
+      <created>1590356316774</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1590356316774</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -469,11 +465,11 @@
     <state width="1238" height="233" key="GridCell.Tab.1.right/0.23.1280.777@0.23.1280.777" timestamp="1586962757544" />
     <state width="1238" height="232" key="GridCell.Tab.1.right/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587577007702" />
     <state width="1238" height="231" key="GridCell.Tab.1.right/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590284027487" />
-    <state x="1494" y="-9" key="SettingsEditor" timestamp="1589932506745">
+    <state x="1494" y="-9" key="SettingsEditor" timestamp="1590356429138">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="137" y="23" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587082036728" />
-    <state x="1494" y="-9" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1589932506745" />
+    <state x="1494" y="-9" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356429138" />
     <state width="683" height="357" key="XDebugger.FullValuePopup" timestamp="1587533745559">
       <screen x="0" y="23" width="1366" height="745" />
     </state>
