@@ -11,20 +11,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Functioning version of the new style. Woohoo.">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-10.0.log" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-12.0.log" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-18.0.log" afterDir="false" />
@@ -34,11 +20,7 @@
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-22.0.log" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-23.0.log" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/logs/d4j.2020-05-24.0.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Token.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/logback.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/MyTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/classes/java/main/ChatKat.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/ChatKat.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ChatKat.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -291,7 +273,14 @@
       <option name="project" value="LOCAL" />
       <updated>1588040084713</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Functioning version of the new style. Woohoo.">
+      <created>1590352611562</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1590352611562</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -411,30 +400,30 @@
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="1858" y="96" key="EnvironmentVariablesDialog/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1588544308547" />
-    <state width="1238" height="181" key="GridCell.Tab.0.bottom" timestamp="1590352294736">
+    <state width="1238" height="181" key="GridCell.Tab.0.bottom" timestamp="1590355399886">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.bottom/0.23.1280.777@0.23.1280.777" timestamp="1586974952192" />
     <state width="1324" height="172" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084226" />
-    <state width="1238" height="181" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590352294736" />
-    <state width="1238" height="181" key="GridCell.Tab.0.center" timestamp="1590352294735">
+    <state width="1238" height="181" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590355399886" />
+    <state width="1238" height="181" key="GridCell.Tab.0.center" timestamp="1590355399885">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.center/0.23.1280.777@0.23.1280.777" timestamp="1586974952191" />
     <state width="1324" height="172" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084225" />
-    <state width="1238" height="181" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590352294735" />
-    <state width="1238" height="181" key="GridCell.Tab.0.left" timestamp="1590352294734">
+    <state width="1238" height="181" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590355399885" />
+    <state width="1238" height="181" key="GridCell.Tab.0.left" timestamp="1590355399884">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.left/0.23.1280.777@0.23.1280.777" timestamp="1586974952191" />
     <state width="1324" height="172" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084224" />
-    <state width="1238" height="181" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590352294734" />
-    <state width="1238" height="181" key="GridCell.Tab.0.right" timestamp="1590352294735">
+    <state width="1238" height="181" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590355399884" />
+    <state width="1238" height="181" key="GridCell.Tab.0.right" timestamp="1590355399886">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.right/0.23.1280.777@0.23.1280.777" timestamp="1586974952192" />
     <state width="1324" height="172" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084225" />
-    <state width="1238" height="181" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590352294735" />
+    <state width="1238" height="181" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590355399886" />
     <state width="1238" height="231" key="GridCell.Tab.1.bottom" timestamp="1590284027488">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
@@ -497,10 +486,10 @@
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="1671" y="170" key="run.anything.popup/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1588045858015" />
-    <state x="1671" y="92" width="670" height="676" key="search.everywhere.popup" timestamp="1589931967667">
+    <state x="1671" y="92" width="670" height="676" key="search.everywhere.popup" timestamp="1590353978643">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
-    <state x="1671" y="92" width="670" height="676" key="search.everywhere.popup/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1589931967667" />
+    <state x="1671" y="92" width="670" height="676" key="search.everywhere.popup/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590353978643" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
@@ -511,6 +500,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/chatkat$MyTest_name.ic" NAME="MyTest.name Coverage Results" MODIFIED="1586920904616" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/chatkat$ChatKat.ic" NAME="ChatKat Coverage Results" MODIFIED="1587524743712" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/chatkat$ChatKat.ic" NAME="ChatKat Coverage Results" MODIFIED="1590354135706" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>
