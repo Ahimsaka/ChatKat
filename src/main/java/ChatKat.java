@@ -1,336 +1,272 @@
+
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.event.domain.message.MessageEvent;
 import discord4j.core.object.entity.*;
-import discord4j.core.object.util.Snowflake;
-import discord4j.gateway.json.dispatch.MessageCreate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+import discord4j.core.object.entity.User;
 
-import java.time.*;
+import discord4j.core.object.util.Snowflake;
+import org.influxdb.BatchOptions;
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.BatchPoints;
+import org.influxdb.dto.Point;
+import org.influxdb.dto.Query;
+import org.influxdb.dto.QueryResult;
+import reactor.core.publisher.Mono;
+
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.util.Map.Entry.comparingByValue;
-
-
-/*
-*
-* START OVER:
-*   -- recalculate every time (calc only based on parameters)
-*   -- no history
-*
-* First 3 users get usernames and embeds.
-*
-* PARAMETERS
-*   Full Channel
-*   One Category
-*   Single User/Category or # of users
-*
-* !daily 10
-* !weekly 3
-* !monthly
-* !yearly 5
-* etc.
-*
-* if results are limited by param, we should still scrape
-* full channel since it doesn't take that long and saves time on repeat calls
-*
-* Rewrite print statements to allow a counter & to allow printing one grouping at a time
-* Should be able to print:
-*   ? Full Guild - all channels
-*   One Category at a Time - self expl.
-*   Or any above, with output limit.
-*
-*
-* an Owner Only mode:         // Get the bot owner ID to filter commands
-        AtomicLong ownerId = new AtomicLong();
-        Flux.first(client.getEventDispatcher().on(ReadyEvent.class),
-                client.getEventDispatcher().on(ResumeEvent.class)).next()
-                .flatMap(evt -> client.getApplicationInfo()).map(ApplicationInfo::getOwnerId).map(Snowflake::asLong)
-                .subscribe(ownerId::set);
-*
-*
-* printUser, printChannel, printAll satisfy these requirements with the right params
-* so it's time to add params.
-*
-*
-* KeyListener to get Ctrl+some char to quit.
-* Docstrings
-*
-*
-* */
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChatKat {
-    static String token = Token.token();
-    public static Logger log = LoggerFactory.getLogger("name");
-    public static DiscordClient client;
-    public static HashMap<Channel, Instant> history = new HashMap();
-
-    private static class Scoreboard {
-        public static HashMap<User, Integer> daily = new HashMap<User, Integer>();
-        public static HashMap<User, Integer> sevenDay = new HashMap<User, Integer>();
-        public static HashMap<User, Integer> monthly = new HashMap<User, Integer>();
-        public static HashMap<User, Integer> yearly = new HashMap<User, Integer>();
-        public static HashMap<User, Integer> all = new HashMap<User, Integer>();
-        public static Message last;
-        public static Snowflake created;
-        static MessageChannel channel;
-
-        public Scoreboard(Message message) {
-            setCreated(message);
-            setLast(message);
-            channel = message.getChannel().block();
-        }
-
-        public static void setLast(Message message) {
-            last = message;
-        }
-        public Message getLast() {
-            return last;
-        }
-
-        public static void setCreated(Message message) {
-            created = message.getId();
-        }
-        public Snowflake getCreated() {
-            return created;
-        }
-
-        public static void increment(Message message, Scoreboard s) {
-            log.info("Update Increment Increment");
-
-            User user = message.getAuthor().get();
-            Instant m = message.getTimestamp();
-
-            LocalDateTime last = LocalDateTime.ofInstant(s.getLast().getTimestamp(), ZoneId.systemDefault());
-            LocalDateTime mTime = LocalDateTime.ofInstant(m, ZoneId.systemDefault());
-
-            if (!s.all.containsKey(user)) s.all.put(user, 0);
-            s.all.put(user, s.all.get(user) + 1);
-
-            if (mTime.getYear() == last.getYear()) {
-                if (!s.yearly.containsKey(user)) s.yearly.put(user, 0);
-                s.yearly.put(user, s.yearly.get(user) + 1);
-            }
-
-            if (mTime.getMonth() == last.getMonth()) {
-                if (!s.monthly.containsKey(user)) s.monthly.put(user, 0);
-                s.monthly.put(user, s.monthly.get(user) + 1);
-            }
-
-            if (mTime.plus(Duration.ofDays(7)).isAfter(last)) {
-                if (!s.sevenDay.containsKey(user)) s.sevenDay.put(user, 0);
-                s.sevenDay.put(user, s.sevenDay.get(user) + 1);
-            }
-
-            if (mTime.getDayOfYear() == last.getDayOfYear()) {
-                if (!s.daily.containsKey(user)) s.daily.put(user, 0);
-                s.daily.put(user, s.daily.get(user) + 1);
-            }
-
-        }
-
-        public Integer i = 1;
-
-        public String printUser(User user, Integer count, String suffix) {
-            String prefix = i == 1 ? "**Your Queen**" : i == 2 ? "**Runner-up**" : i == 3 ? "**2nd Runner-up**" : i.toString() + ".  ";
-            String report = prefix + "  <@" + user.getId().asString() + "> *has posted* **" + count + " times** *" + suffix + (i == 3 ? "*\n" : "*");
-            i++;
-            return report;
-        }
-
-        public String printCategory(HashMap<User, Integer> board, String title, String suffix) {
-            i = 1;
-            List<String> report = board.entrySet().stream()
-                    .sorted(comparingByValue(Comparator.reverseOrder()))
-                    .map(entry -> printUser(entry.getKey(), entry.getValue(), suffix))
-                    .collect(Collectors.toList());
-            return "__" + title + "__\n\n" + String.join("\n", report) + "\n\n";
-        }
-
-        public void printAll() {
-            log.info("I be printing all");
-            String report = printCategory(daily, "Daily Ranks", "today!")
-                    + printCategory(sevenDay, "Last 7 Days", "in the last 7 days!")
-                    + printCategory(monthly, "This Month", "this month!")
-                    + printCategory(yearly, "This Year", "this year!")
-                    + printCategory(all, "All Time", "since the channel was created.");
-            sendMessage(channel, report, 3000);
-        }
-    }
-
+    //
+    // create logback logger. the log that logs back, baby!
+    private final static Logger log = LoggerFactory.getLogger(ChatKat.class);
+    //
+    // initialize variables for Discord Client to facilitate cleanup on exit
+    // and access from event handlers:
+    private static DiscordClient client;
+    //
+    // InfluxDB setup. See: https://github.com/influxdata/influxdb-java/blob/master/MANUAL.md
+    // Note: influxdb-java is used due to ease of configuration with influxDB 1.x, which is used because
+    //       this is a limited scope application and influxDB 2.x does not yet have an official dockerhub image.
+    //       For any further development, conversion to influxdb-client-java and InfluxDB 2.x should be considered.
+    private static InfluxDB influxDB;
+    private static BatchPoints batchPoints;
+    final static String serverURL = "http://127.0.0.1:8086", username = "root", password = "root";
+    final static String databaseName = "ChatKat";
+    //
+    // you know this one, friend. it's a classic
     public static void main(String[] args) {
+        //
+        // do, or do not. there is no
         try {
-
-
-
-            client = DiscordClientBuilder.create(token).build();
-            String bot = client.getSelf().block().getUsername();
-
-            // Create event handlas
-            List<EventHandler> eventHandlers = new ArrayList<>();
-            eventHandlers.add(new Counter());
-
-
-            Flux<ReadyEvent> ready = client.getEventDispatcher().on(ReadyEvent.class);
-
-            ready.subscribe(r -> {
-                        log.info("Logged in as " + bot + ".");
-                    });
-
-            Flux<MessageCreateEvent> getMessages = client.getEventDispatcher().on(MessageCreateEvent.class);
-            getMessages
-                    .delaySubscription(ready)
-                    .filter(event -> event.getMessage().getAuthor().isPresent() &&
-                                    !event.getMessage().getAuthor().get().isBot() &&
-                                    event.getMessage().getContent().isPresent())
-                    .flatMap(event -> Mono.whenDelayError(eventHandlers.stream()
-                            .map(handler -> handler.onMessageCreate(event))
-                            .collect(Collectors.toList())))
+            //
+            // Build InfluxDB client
+            influxDB = InfluxDBFactory.connect(serverURL, username, password);
+            //
+            // create data base
+            // *** keep an eye on this. it appears that this won't drop existing data if
+            // *** the container
+            influxDB.query(new Query("CREATE DATABASE " + databaseName));
+            //
+            // set the default database to write message points to
+            influxDB.setDatabase(databaseName);
+            //
+            // enable writing data in batches & set up exception handler to log failed data points
+            // (which do not stop/affect the batch overall)
+            // we'll stick with the autogen retention policy because the data is simple and uniform
+            // and small enough at observed scales not to be worth aggregating. If that changes
+            // consider aggregating to a sum per series after 365 days.
+            influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler(
+                    (failedPoints, throwable) -> failedPoints.forEach(p -> {
+                        log.info(p.toString());
+                    }))
+            );
+            //
+            // initialize BatchPoints object to aggregate data points to reduce http api calls
+            batchPoints = BatchPoints.database(databaseName)
+                    .build();
+            //
+            // Build DiscordClient
+            client = DiscordClientBuilder.create(System.getenv("TOKEN")).build();
+            //
+            // MESSAGE EVENT ROUTING
+            client.getEventDispatcher().on(MessageCreateEvent.class)
+                    //
+                    // we only care about messages with content and non-bot authors.
+                    .filter(event -> //event.getMessage().getAuthor().isPresent() &&
+                            //!event.getMessage().getAuthor().get().isBot() &&
+                            event.getMessage().getContent().isPresent())
+                    .map(event -> {
+                        //
+                        // fetch message
+                        Message message = event.getMessage();
+                        //
+                        // fetch guildID, channelID, authorID as strings to use as measurement and tag values
+                        // numerical strings break the query, so prepend character to each
+                        String guildID = "g" + message.getGuild().block().getId().asString(),
+                                channelID = "c" + message.getChannelId().asString(),
+                                authorID = "a" + message.getAuthorAsMember().block().getId().asString();
+                        //
+                        // CHECK NOW IF THIS IS A REQUEST AND ADD REQUEST true/false AS A FIELD FOR RATE LIMITING
+                        // add message data Point to batch
+                        batchPoints.point(Point.measurement(guildID)
+                                .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
+                                .tag("channelID", channelID)
+                                .tag("authorID", authorID)
+                                // temporary for testing/debug only
+                                .addField("text", message.getContent().get())
+                                .build());
+                        return message;
+                    })
+                    //
+                    // now that the data point is in the write batch, check for request syntax
+                    .filter(message -> message.getContent().get().startsWith("&Kat"))
+                    //
+                    // if the message is a request:
+                    .map(message -> {
+                        //
+                        // fetch channel
+                        MessageChannel channel = message.getChannel().block();
+                        //
+                        // fetch guildID, channelID as strings to use in query
+                        // numerical strings break the query, so prepend character to each
+                        String guildID = "g" + message.getGuild().block().getId().asString(),
+                                channelID = "c" + message.getChannelId().asString();
+                        //
+                        // write batchPoints to clear cache - ensures that all messages up to request (and possibly
+                        // just after) will be included in output
+                        influxDB.write(batchPoints);
+                        //
+                        // set interval
+                        // ***** UPDATE TO BE VARIABLE BASED ON PARAMS
+                        long interval = message.getTimestamp().minus(10, ChronoUnit.MINUTES).toEpochMilli();
+                        //
+                        // Query database
+                        // ***** Update to be variable based on Params.
+                        QueryResult queryResult = influxDB.query(new Query("SELECT count(*) FROM " + guildID
+                                + " WHERE channelID = '" + channelID + "'"
+                                //+ "AND time >= " + interval + "ms"
+                                + " GROUP BY authorID"
+                        ));
+                        //
+                        // stream the query results to sort them by value and convert to list of strings.
+                        // **** I think that if we add 1 higher level of streaming we can make this
+                        // **** logic applicable to full guild & channel results. if not, we'll have to abstract
+                        // **** this logic into a helper method.
+                        List<String> output = queryResult.getResults().get(0).getSeries()
+                                .stream()
+                                .sorted((series1, series2)-> series2.getValues().get(0).get(1).toString().compareTo(series1.getValues().get(0).get(1).toString()))
+                                //
+                                // construct output string for each user and collect to list
+                                .map(series -> client.getMemberById(Snowflake.of(guildID.substring(1)), Snowflake.of(series.getTags().get("authorID").substring(1))).block().getMention()
+                                        + " " + series.getValues().get(0).get(1).toString().split("\\.")[0])
+                                .collect(Collectors.toList());
+                        //
+                        // prepend number to each entry in list for presentation
+                        output.forEach((entry)->{
+                            int i = output.indexOf(entry);
+                            output.set(i, (i+1) + ". " + entry);
+                        });
+                        //
+                        // join list with \n delimiter to send as one message, then send.
+                        channel.createMessage(String.join("\n", output)).subscribe();
+                        return Mono.empty();
+                    })
                     .onErrorContinue((t, o) -> log.error("Error while processing event", t))
                     .subscribe();
+            //
+            // Get guildCreateEvent dispatcher to backfill DB
+            client.getEventDispatcher().on(GuildCreateEvent.class)
+                    .map(GuildCreateEvent::getGuild)
+                    .map(guild -> guild)
+                    .map(guild -> guild.getChannels()
+                            .filter(guildChannel -> guildChannel instanceof TextChannel)
+                            .map(guildChannel -> {
+                                TextChannel textChannel = (TextChannel) guildChannel;
+                                return textChannel.getMessagesBefore(Snowflake.of(Instant.now()))
+                                        .filter(message -> //message.getAuthor().isPresent() &&
+                                                //!message.getAuthor().get().isBot() &&
+                                                message.getContent().isPresent())
+                                        .map(message -> {
+                                            //
+                                            // fetch guildID, channelID, authorID as strings to use as measurement and tag values
+                                            // numerical strings break the query, so prepend character to each
+                                            String guildID = "g" + message.getGuild().block().getId().asString(),
+                                                    channelID = "c" + message.getChannelId().asString(),
+                                                    authorID = "a" + message.getAuthorAsMember().block().getId().asString();
+                                            //
+                                            // add to write batch
+                                            batchPoints.point(Point.measurement(guildID)
+                                                    .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
+                                                    .tag("channelID", channelID)
+                                                    .tag("authorID", authorID)
+                                                    // temporary for testing/debug only
+                                                    .addField("text", message.getContent().get())
+                                                    .build());
+                                            return message;
+                                        })
+                                        .collectList().block();
+                            }).collectList().block()).subscribe(list -> log.info("Backfill emitted"));
 
-            Flux<MessageCreateEvent> tester = Flux.first(getMessages).map(event -> {
-                log.info(event.getMessage().getContent().get());
-                return event;
-            });
-            tester.subscribe();
+            //
+            // Get an event dispatcher for readyEvents emitted when the bot logs in
+            client.getEventDispatcher().on(ReadyEvent.class)
+                    //
+                    // backfill database before logging client in.
+                    // NOTA BENE: influxDB merges identical points, and the timestamps are based on the
+                    // the unique snowflakes. as a result, we do NOT need to wait until after backfill
+                    // to start adding new messages to the batchPoints
+                    //
+                    // fetch the # of guilds available to client to determine when to log in.
+                    // THE FOLLOWING BLOCK CURRENTLY CREATES A LIST OF
+                    .subscribe();
 
             /*
-             * On Guild Create:
-             *     - Start making scoreboards for each channel in guild.
-             *
-             *   -filter the parameters
-             *   -print scoreboard based on params.
-             *
-             *  THIS IS WHERE I NEED TO PARSE PARAMETERS
-             * -X number of results to show (default is ten)
-             * -all (show all results -- overrides number)
-             * -me (just return user's scores)
-             * -guild(return total between all avail. MessageChannel in guild (default is current channel only)
-             * -tag (tag winners)
-             * -dm
-             *
-             *
-             */
+            Instead of blocking the login/login notice until the ready event has completed,
+            can we have the message counter and the message parser set up as two separate
+            event listeners, with the parser set to delay subscription until the ReadyEvent
+            has completed? It's not ideal behavior because the bot will show as online before it
+            is ready to accept input, but it's a lot easier and it is a relatively minor
+            use case in production (only affects a the time period between launch and the end of the backfill
+            which shouldn't be an insane amount of time under light load. Once it's working,
+            we can go back to figuring out how to set invisible or set do not disturb status during the wait.
+            */
+
+            client.getSelf().map(User::getUsername).subscribe(bot ->
+                    log.info(String.format("Logged in as %s.", bot)));
 
             client.login().block();
+
         } catch (Exception e) {
             log.error(e.toString());
-        }
-
-
-    }
-
-    static abstract class EventHandler {
-        public abstract Mono<Void> onMessageCreate(MessageCreateEvent event);
-    }
-
-    static class Counter extends EventHandler {
-        @Override
-        public Mono<Void> onMessageCreate(MessageCreateEvent event) {
-
-            Message message = event.getMessage();
-            MessageChannel channel = message.getChannel().block();
-
-            if (history.containsKey(channel)) {
-                if (history.get(channel).plus(1, ChronoUnit.HOURS).compareTo(message.getTimestamp()) >= 0){
-                    String outString = "Nuh-uh, hunty.  I'm off the clock.  Check back at "+history.get(channel).plus(1, ChronoUnit.HOURS).toString();
-                    sendMessage(channel, outString, 200);
-                    return Mono.empty();
-                }
-            }
-            client.getGuilds().join()
-            history.put(channel, message.getTimestamp());
-
-            Scoreboard s = new Scoreboard(message);
-
-            Flux<Message> messagesToCount = channel.getMessagesBefore(message.getId());
-            // Args: -<int--ignored without:> -<UNIT: d, w, m, y>
-            // if TimeArgs, messagesToCount.takeWhile(msg ->
-            //                          message.getTimestamp().minus(int, UNIT).compareTo(msg.getTimestamp()) >=0)
-            // default counts all.
-            // printAll handles itself in this case.
-            messagesToCount
-                    .flatMap(msg -> Mono.just(msg).subscribeOn(Schedulers.elastic()))
-                    .doOnNext(msg -> s.increment(msg, s))
-                    .collectList()
-                    .onErrorContinue((t, o) -> log.error("Error while processing event", t))
-                    .doFinally(finished -> {
-                        // PRINT ARGS here, just filter it inside of the object with arguments.
-                        s.printAll();
-                    })
-                    .subscribe();
-            return Mono.empty();
+        } finally {
+            client.logout();
+            influxDB.write(batchPoints);
+            influxDB.close();
         }
     }
-
-
-
-    /*static class GetScoreboard extends EventHandler {
-        @Override
-        public Mono<Void> onMessageCreate(MessageCreateEvent event) {
-            log.info("GetScoreboard");
-            Message message = event.getMessage();
-            log.info("Message retrieved.");
-            return message.getChannel()
-                    .filter(channel->history.containsKey(channel))
-                    .flatMap(channel -> Mono.whenDelayError(channel
-                            .getMessagesAfter(history.get(channel).last.getId())
-                            .takeWhile(ms->ms.getId().compareTo(history.get(channel).last.getId())<=0)
-                            .collect(Collectors.toList())
-                            .flatMap(list -> Mono.whenDelayError(list.stream()
-                                    .map(m -> {
-                                        log.info(m.getContent().get());
-                                        if (!history.containsKey(m)) Scoreboard.increment(m);
-                                        else Scoreboard.increment(m, history.get(channel));
-                                        return Mono.empty();
-                                    }).collect(Collectors.toList()))).map(voidList -> {
-                                history.get(channel).printAll();
-                                return Mono.empty();
-                            })))
-                    .onErrorContinue((t, o) -> log.error("Error while processing event", t))
-                    .then();
-            message.getChannel().map(channel -> {
-                if (history.containsKey(message)){
-                    Scoreboard scoreboard = history.get(message);
-                    message.getChannel().subscribe(MessageChannel::getMessagesBefore)
-                } else {
-                    Scoreboard scoreboard = new Scoreboard(message);
-                }})
-                    .subscribe(scoreboard -> {
-                        scoreboard.printAll();
-            });
-        }
-    }
-    */
-
-
-    public static Pattern summons = Pattern.compile("\\A[\\s\\.]*&+[\\s.]*[kK]+[[aA]*[tT]*]*");
-
-
-
-
-    public static void sendMessage(MessageChannel channel, String message, Integer millis) {
-        try {
-            channel.type();
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            log.error(e.toString());
-        }
-        channel.createMessage(message).subscribe();
-    }
-
 }
 
+            // ?? DURING LAUNCH
+            //    ?? - logic to look for existing image, if present, and load it onto the DB
+            // ON LAUNCH
+            //     ?? - client.updatePresence(Presence.invisible())
+            //      - BLOCK REQUEST PARSER UNTIL AFTER BACKFILL
+            //      - BACKFILL AVAILABLE TEXT CHANNELS & OPEN MESSAGE COUNTER. IF DB exists,
+            //      - query db for most recent point for each channel and backfill after that
+            //      - write batchpoints after backfill
+            //      - when batchpoints write completes for all channels open request parser
+            // ON ALL MESSAGES FROM CHANNEL
+            //      FILTER OUT BOT MESSAGES, MESSAGES WITHOUT AUTHOR, MESSAGES WITHOUT CONTENT
+            //      - add message to batchPoints
+            //      - send message to request parser (handle the blocking elsewhere, this function
+            //             shouldn't need to know if the parser is open for bisnasty)
+            // INSIDE REQUEST PARSER - ON MESSAGES IDENTIFIED AS REQUESTS
+            //      IF BLOCKED BY BACKFILL IN CHANNEL (OR IF GUILD REQUEST IN GUILD CO-CHANNEL
+            //          - IGNORE
+            //      ELSE
+            //      - check "requests" table (which we should make with a different batchwriter but n
+            //          not really batchwriter because we should write each one as we get it
+            //      - use retention policy to rate limit per channel/ user, use field value to
+            //            send an explanation *once* per channel or per user (same user, second channel is still no)
+            //          - ignore all subsequent calls from user/channel until record expires.
+            //      ELSE
+            //      -Output
+            // ON MESSAGE DELETION (ALSO CHECK IF MESSAGE EDIT TO NO CONTENT CAN BE DIFFERENT JUST IN CASE)
+            //      - if deleted message is older than 1 year, decrement the aggregate of that measurement/series
+            //      - if not, convert snowflake to timestamp & delete series entry for that timestamp (use full
+            //          series information for that delete, just in case. I know the snowflakes are unique but i'm not
+            //          sure if they convert to unique EpochMilli, so channel/measurement isn't enough (need author)
+            // ?? QUICK GOOD FUN ??
+            // ??   - if Billob, Solohan, or Bill enter a voicechannel, use RNG w/ 1/100 chance to enter voicechannel
+            // ??   - and play Never Going to Give You Up
