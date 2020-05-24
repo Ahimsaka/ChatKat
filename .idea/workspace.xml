@@ -294,7 +294,14 @@
       <option name="project" value="LOCAL" />
       <updated>1590355901529</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Functioning version of the new style. Woohoo.">
+      <created>1590356055446</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1590356055446</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -472,10 +479,10 @@
     </state>
     <state width="683" height="357" key="XDebugger.FullValuePopup/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587533745559" />
     <state width="640" height="372" key="XDebugger.FullValuePopup/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1587516679044" />
-    <state x="1797" y="300" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1589148377329">
+    <state x="1797" y="300" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1590356064636">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
-    <state x="1797" y="300" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1589148377329" />
+    <state x="1797" y="300" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356064636" />
     <state x="425" y="188" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1587524586453">
       <screen x="0" y="23" width="1366" height="745" />
     </state>
