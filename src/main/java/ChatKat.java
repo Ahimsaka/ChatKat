@@ -186,7 +186,7 @@ public class ChatKat {
                                 // construct output string for each user and collect to list
                                 .map(series -> client.getMemberById(Snowflake.of(guildID.substring(1)),
                                         Snowflake.of(series.getTags().get("authorID").substring(1))).block().getMention()
-                                        + " sent *" + series.getValues().get(0).get(1).toString().split("\\.")[0] + "* messages.")
+                                        + " sent **" + series.getValues().get(0).get(1).toString().split("\\.")[0] + "** messages.")
                                 .collect(Collectors.toList());
                         //
                         // prepend number to each entry in list for presentation
