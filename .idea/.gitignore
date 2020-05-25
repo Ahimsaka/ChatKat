@@ -3,6 +3,9 @@
 # ignore the place where i have the token saved
 /src/main/java/Token.java
 
+# ignore workspace
+.idea/workspace.xml
+
 # ignore log files
 /logs/
 ### Java ###

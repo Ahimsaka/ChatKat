@@ -10,11 +10,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Functioning version of the new style. Woohoo.">
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely.">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/d4j.2020-05-24.0.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/d4j.2020-05-24.0.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ChatKat.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ChatKat.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,7 +113,7 @@
     <configuration name="ChatKat" type="Application" factoryName="Application" nameIsGenerated="true">
       <envs>
         <env name="DEV" value="true" />
-        <env name="TOKEN" value="Njk5Mzk3MTg4OTc1MDY3MTM2.Xsrr0A.4rizuamrkHldY2Q8YtZIbOqQ25Q" />
+        <env name="TOKEN" value="Njk5Mzk3MTg4OTc1MDY3MTM2.XssS1g.PcmjAShscbpN1BFcIFGizcmsaFw" />
         <env name="INFLUXDB_CONFIG_PATH" value="/usr/local/etc/influxdb.conf" />
       </envs>
       <option name="MAIN_CLASS_NAME" value="ChatKat" />
@@ -316,7 +314,14 @@
       <option name="project" value="LOCAL" />
       <updated>1590357054357</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely.">
+      <created>1590366721696</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1590366721696</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -335,7 +340,8 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="1st commit - locking state on mostly functional 2nd draft. Am now refactoring message/state handling to use Fluxes based on channel.getMessagesAfter(). It's big change so I want to be able to revert to the best prior version." />
     <MESSAGE value="Functioning version of the new style. Woohoo." />
-    <option name="LAST_COMMIT_MESSAGE" value="Functioning version of the new style. Woohoo." />
+    <MESSAGE value="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely." />
   </component>
   <component name="WindowStateProjectService">
     <state x="1898" y="220" key="#BuildArtifactsBeforeRunChooser" timestamp="1588654802516">
@@ -386,11 +392,11 @@
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="1844" y="239" key="#com.intellij.debugger.actions.ViewTextAction/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1587517587550" />
-    <state x="1575" y="70" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590356971175">
+    <state x="1575" y="70" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590366953612">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="104" y="57" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587082122116" />
-    <state x="1575" y="70" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356971175" />
+    <state x="1575" y="70" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366953612" />
     <state x="1466" y="100" width="1080" height="545" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog" timestamp="1586920316630">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
@@ -436,30 +442,30 @@
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state x="1858" y="96" key="EnvironmentVariablesDialog/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1588544308547" />
-    <state width="1238" height="181" key="GridCell.Tab.0.bottom" timestamp="1590366473029">
+    <state width="1238" height="181" key="GridCell.Tab.0.bottom" timestamp="1590366699147">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.bottom/0.23.1280.777@0.23.1280.777" timestamp="1586974952192" />
     <state width="1324" height="172" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084226" />
-    <state width="1238" height="181" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366473029" />
-    <state width="1238" height="181" key="GridCell.Tab.0.center" timestamp="1590366473029">
+    <state width="1238" height="181" key="GridCell.Tab.0.bottom/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366699147" />
+    <state width="1238" height="181" key="GridCell.Tab.0.center" timestamp="1590366699145">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.center/0.23.1280.777@0.23.1280.777" timestamp="1586974952191" />
     <state width="1324" height="172" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084225" />
-    <state width="1238" height="181" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366473029" />
-    <state width="1238" height="181" key="GridCell.Tab.0.left" timestamp="1590366473028">
+    <state width="1238" height="181" key="GridCell.Tab.0.center/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366699145" />
+    <state width="1238" height="181" key="GridCell.Tab.0.left" timestamp="1590366699144">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.left/0.23.1280.777@0.23.1280.777" timestamp="1586974952191" />
     <state width="1324" height="172" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084224" />
-    <state width="1238" height="181" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366473028" />
-    <state width="1238" height="181" key="GridCell.Tab.0.right" timestamp="1590366473029">
+    <state width="1238" height="181" key="GridCell.Tab.0.left/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366699144" />
+    <state width="1238" height="181" key="GridCell.Tab.0.right" timestamp="1590366699146">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
     <state width="1238" height="337" key="GridCell.Tab.0.right/0.23.1280.777@0.23.1280.777" timestamp="1586974952192" />
     <state width="1324" height="172" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1588548084225" />
-    <state width="1238" height="181" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366473029" />
+    <state width="1238" height="181" key="GridCell.Tab.0.right/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366699146" />
     <state width="1238" height="231" key="GridCell.Tab.1.bottom" timestamp="1590284027488">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
@@ -489,10 +495,10 @@
     </state>
     <state x="137" y="23" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587082036728" />
     <state x="1494" y="-9" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356429138" />
-    <state x="1606" y="119" key="Vcs.Push.Dialog.v2" timestamp="1590356712775">
+    <state x="1606" y="119" key="Vcs.Push.Dialog.v2" timestamp="1590366726044">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
-    <state x="1606" y="119" key="Vcs.Push.Dialog.v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356712775" />
+    <state x="1606" y="119" key="Vcs.Push.Dialog.v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366726044" />
     <state width="683" height="357" key="XDebugger.FullValuePopup" timestamp="1587533745559">
       <screen x="0" y="23" width="1366" height="745" />
     </state>
