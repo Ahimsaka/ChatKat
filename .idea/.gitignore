@@ -4,10 +4,11 @@
 /src/main/java/Token.java
 
 # ignore workspace
-/.idea/workspace.xml
+workspace.xml
 
 # ignore log files
-/logs/
+*.log
+
 ### Java ###
 *.class
 
