@@ -4,7 +4,7 @@
 /src/main/java/Token.java
 
 # ignore workspace
-.idea/workspace.xml
+/.idea/workspace.xml
 
 # ignore log files
 /logs/

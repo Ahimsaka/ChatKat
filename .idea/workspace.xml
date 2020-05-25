@@ -10,10 +10,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely.">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="103f145b-71b6-4d81-9f9d-0dc11fd13d78" name="Default Changelist" comment="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -321,7 +318,14 @@
       <option name="project" value="LOCAL" />
       <updated>1590366721696</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Added deletion event handler. May still decide to add a full-guild results option, but otherwise the only remaining changes are aesthetic. The core functions are working quite handsomely.">
+      <created>1590366960089</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1590366960089</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -495,10 +499,10 @@
     </state>
     <state x="137" y="23" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@0.23.1366.745" timestamp="1587082036728" />
     <state x="1494" y="-9" key="SettingsEditor/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590356429138" />
-    <state x="1606" y="119" key="Vcs.Push.Dialog.v2" timestamp="1590366726044">
+    <state x="1606" y="119" key="Vcs.Push.Dialog.v2" timestamp="1590366962637">
       <screen x="1366" y="-9" width="1280" height="777" />
     </state>
-    <state x="1606" y="119" key="Vcs.Push.Dialog.v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366726044" />
+    <state x="1606" y="119" key="Vcs.Push.Dialog.v2/0.23.1366.745/1366.-9.1280.777@1366.-9.1280.777" timestamp="1590366962637" />
     <state width="683" height="357" key="XDebugger.FullValuePopup" timestamp="1587533745559">
       <screen x="0" y="23" width="1366" height="745" />
     </state>
