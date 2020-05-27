@@ -8,6 +8,7 @@
 
 # ignore log files
 *.log
+/logs/
 
 ### Java ###
 *.class
