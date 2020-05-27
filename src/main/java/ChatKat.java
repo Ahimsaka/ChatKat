@@ -37,8 +37,10 @@ public class ChatKat {
     //
     // initialize BatchPoints object to write to database.
     final static BatchPoints batchPoints = BatchPoints.database(System.getenv("databaseName")).build();
-
-    private static void addMessage(Message message) {
+    //
+    // helper method accepts a discord4j Message object as input and adds it to BatchPoints object
+    // and returns the message
+    private static Message addMessage(Message message) {
         //
         // fetch channelID, authorID as strings to use as and tag values
         // **numerical strings break the query, so prepend character to each
@@ -52,6 +54,7 @@ public class ChatKat {
                 .tag("authorID", authorID)
                 .addField("isValid", 1)
                 .build());
+        return message;
     }
     //
     public static void main(String[] args) {
@@ -97,7 +100,7 @@ public class ChatKat {
                     .map(guildChannel -> (TextChannel) guildChannel)
                     .flatMap(textChannel -> textChannel.getMessagesBefore(Snowflake.of(Instant.now())))
                     .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent())
-                    .subscribe(message -> addMessage(message));
+                    .subscribe(ChatKat::addMessage);
             //
             // Process incoming messages
             // Note - in event of timing conflict with the back-fill process, the batchPoints
@@ -107,16 +110,13 @@ public class ChatKat {
                     //
                     // we only care about messages with content and non-bot authors.
                     .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent())
-                    .map(message -> {
-                        addMessage(message);
-                        return message;
-                    })
+                    .map(ChatKat::addMessage)
                     //
                     // now that the data point is in the write batch, check for request syntax
                     .filter(message -> message.getContent().get().startsWith("&Kat"))
                     //
                     // if the message is a request:
-                    .map(message -> {
+                    .subscribe(message -> {
                         //
                         // write batchPoints to clear cache - ensures that all messages up to request (and possibly
                         // just after) will be included in output
@@ -151,35 +151,38 @@ public class ChatKat {
                         // numerical strings break the query, so prepend character to each
                         String channelID = "c" + message.getChannelId().asString();
                         //
-                        // Query database
-                        QueryResult queryResult = influxDB.query(new Query("SELECT sum(\"isValid\") FROM messages"
+                        // Query the database and set the return to a list of influxDB Series objects
+                        List<QueryResult.Series> seriesList = influxDB.query(new Query("SELECT sum(\"isValid\") FROM messages"
                                 + " WHERE channelID = '" + channelID + "'"
                                 + "AND time >= " + interval + "ms"
                                 + " GROUP BY authorID"
-                        ));
+                        )).getResults().get(0).getSeries();
+                        //
+                        // sort seriesList
+                        seriesList.sort((series1, series2)-> series2.getValues().get(0).get(1).toString()
+                                        .compareTo(series1.getValues().get(0).get(1).toString()));
+                        //
+                        // initialize StringBuilder object to collect output string
+                        StringBuilder output = new StringBuilder();
                         //
                         // get guildId to get author's guild nickname
                         Snowflake guildID = message.getGuild().block().getId();
                         //
-                        // stream the query results to sort by value and convert to list of strings.
-                        // then set them to a list for output
-                        List<QueryResult.Series> seriesList = queryResult.getResults().get(0).getSeries();
-                        StringBuilder output = new StringBuilder();
-
-                        seriesList.sort((series1, series2)-> series2.getValues().get(0).get(1).toString()
-                                        .compareTo(series1.getValues().get(0).get(1).toString()));
-
+                        // loop through seriesList and
                         for (int i = 0; i < seriesList.size(); i++) {
-                            output.append(i + 1).append(". ").append(client.getMemberById(guildID,
-                                    Snowflake.of(seriesList.get(i).getTags().get("authorID").substring(1))).block().getMention()).append(" sent **").append(seriesList.get(i).getValues().get(0).get(1).toString().split("\\.")[0]).append("** messages. \n");
+                            output.append(i + 1).append(". ") // append rank
+                                    .append(client.getMemberById(guildID, // append user tag
+                                            Snowflake.of(seriesList.get(i).getTags().get("authorID").substring(1)))
+                                            .block()
+                                            .getMention()).append(" sent **")
+                                    // append # of messages found
+                                    .append(seriesList.get(i).getValues().get(0).get(1).toString().split("\\.")[0])
+                                    .append("** messages. \n");
                         }
                         //
                         // join list with \n delimiter to send as one message, then send.
                         channel.createMessage(output.toString()).subscribe();
-                        return Mono.empty();
-                    })
-                    .onErrorContinue((t, o) -> log.error("Error while processing event", t))
-                    .subscribe();
+                       });
             //
             // get eventDispatcher for deleted messages to remove them from the database
             client.getEventDispatcher().on(MessageDeleteEvent.class)
@@ -206,7 +209,6 @@ public class ChatKat {
                                 .addField("isValid", 0)
                                 .build());
                     });
-
             // log client in and block so that main thread doesn't exit until instructed.
             client.login().block();
         } catch (Exception e) {
