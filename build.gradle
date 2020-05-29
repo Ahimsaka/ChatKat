@@ -7,6 +7,7 @@ version '1.0.0'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -14,4 +15,9 @@ dependencies {
     implementation 'com.discord4j:discord4j-core:3.0.14'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     compile group: 'org.influxdb', name: 'influxdb-java', version: "2.19"
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+    main = 'chatkat'
+    classpath = sourceSets.main.runtimeClasspath
 }

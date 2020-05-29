@@ -1,7 +1,7 @@
 # Created by https://www.gitignore.io/api/java,gradle
 
-# ignore the place where i have the token saved
-/src/main/java/Token.java
+#ignore config file (private token stored here)
+/src/main/resources/config.properties
 
 # ignore workspace
 .idea/workspace.xml
