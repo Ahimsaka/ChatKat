@@ -7,6 +7,8 @@ import discord4j.core.event.domain.message.MessageDeleteEvent;
 import discord4j.core.object.entity.*;
 import discord4j.core.object.entity.User;
 
+import discord4j.core.object.util.Permission;
+import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
@@ -17,12 +19,12 @@ import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 
 import java.io.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,7 @@ import reactor.core.publisher.Mono;
    For any further development, conversion to influxdb-client-java and InfluxDB 2.x should be considered. */
 public class ChatKat {
     public static void main(String[] args) {
-
         final Logger log = LoggerFactory.getLogger(ChatKat.class);
-
-        Boolean isDebug = System.getenv("DEBUG") != null && System.getenv("DEBUG").equals("true");
 
         Properties properties = new Properties();
         // Stream config.properties file to collect database name, user, password, and URL strings
@@ -79,19 +78,31 @@ public class ChatKat {
             }
             // convenience method to avoid manipulating object properties directly
             private void writeBatch() {
-                this.influxDB.write(this.batchPoints);
+                try {
+                    this.influxDB.write(this.batchPoints);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
             }
             // convenience method for creating username or tag reference in query output string
             private String getUserLabel(String authorID, DiscordClient client, Snowflake guildID, Boolean setTags) {
-                User author = client.getMemberById(guildID, Snowflake.of(authorID)).block();
-                if (!setTags) return author.asMember(guildID).block().getDisplayName();
-                return author.getMention();
+                return client.getUserById(Snowflake.of(authorID)).map(author -> {
+                    if (setTags) {
+                        return author.getMention();
+                    } try {
+                        return author.asMember(guildID).block().getDisplayName();
+                    } catch (Exception e) {
+                        log.error(e.getMessage());
+                        return author.getUsername();
+                    }
+                }).block();
             }
+
             private Message addMessage(Message message) {
                 /* fetch channelID, authorID as strings to use as and tag values
                    **numerical strings break the query, so prepend character to each */
-                String channelID = "c" + message.getChannelId().asString(),
-                        authorID = "a" + message.getAuthorAsMember().block().getId().asString();
+                    String channelID = "c" + message.getChannelId().asString(),
+                        authorID = "a" + message.getAuthor().get().getId().asString();
                 // add message data to batch
                 this.batchPoints.point(Point.measurement("messages")
                         .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
@@ -132,40 +143,54 @@ public class ChatKat {
                 String request = message.getContent().get();
 
                 // set default @mention option - true except if debug
-                boolean setTags = !isDebug;
+                boolean setTags = false;
                 // set default interval (long 0 will be interpreted as Epoch time 0 which is like 1970)
                 long interval = 0;
-
+                class Counter {
+                    int value;
+                    Counter() {
+                        value = 0;
+                    }
+                    int inc() {
+                        this.value = this.value + 1;
+                        return this.value;
+                    }
+                    String val() {
+                        return String.valueOf(this.value);
+                    }
+                }
                 /* loop through the input string for time params or 'nt' (no tags)
                    in case of multiple time param matches, the last input will be used. */
                 for (String s : request.split("-")) {
                     if (this.setInterval.containsKey(s.toLowerCase()))
                         interval = this.setInterval.get(s.toLowerCase()).toEpochMilli();
-                    else if (s.toLowerCase().startsWith("nt")) {
-                        setTags = false;
+                    else if (s.toLowerCase().startsWith("tag")) {
+                        setTags = true;
                     }
                 }
-                List<QueryResult.Series> seriesList = this.influxDB.query(
+                Counter i = new Counter();
+                StringBuilder output = new StringBuilder();
+                final boolean tags = setTags;
+
+                this.influxDB.query(
                         new Query("SELECT sum(\"isValid\")"
                         + " FROM messages"
                         + " WHERE channelID = '" + channelID + "'"
                         + "AND time >= " + interval + "ms"
                         + " GROUP BY authorID"
-                )).getResults().get(0).getSeries();
+                )).getResults().get(0).getSeries().stream()
+                        .sorted((seriesA, seriesB) -> (int)((Double) seriesB.getValues().get(0).get(1) - (Double) seriesA.getValues().get(0).get(1)))
+                        .forEachOrdered(series -> {
+                            i.inc();
 
-                seriesList.sort((series1, series2) -> series2.getValues().get(0).get(1).toString()
-                        .compareTo(series1.getValues().get(0).get(1).toString()));
-
-                StringBuilder output = new StringBuilder();
-
-                for (int i = 0; i < seriesList.size(); i++) {
-                    output.append(i + 1).append(". ") // append rank
-                            .append(this.getUserLabel(seriesList.get(i).getTags().get("authorID").substring(1), client, guildID, setTags))
+                            output.append(i.val()).append(".").append(new String(new char[5 - i.val().length()]).replace("\0", " "))
+                            .append(this.getUserLabel(series.getTags().get("authorID").substring(1), client, guildID, tags))
                             .append(" sent **") // surround # output with ** to bold the text
                             // append # of messages found
-                            .append(seriesList.get(i).getValues().get(0).get(1).toString().split("\\.")[0])
+                            .append(series.getValues().get(0).get(1).toString().split("\\.")[0])
                             .append("** messages. \n");
-                }
+                        });
+                log.info(output.toString());
                 return channel.createMessage(output.toString()).block();
             }
 
@@ -183,25 +208,28 @@ public class ChatKat {
             // Get an event dispatcher for readyEvent on login
             client.getEventDispatcher().on(ReadyEvent.class)
                     .subscribe(event -> client.getSelf().map(User::getUsername).subscribe(bot ->
-                            log.info(String.format("Logged in as %s.", bot))));
+                            log.info(String.format("Connected as %s.", bot))));
 
             // Get guildCreateEvent dispatcher to back-fill DB
             client.getEventDispatcher().on(GuildCreateEvent.class)
                     .map(GuildCreateEvent::getGuild)
                     .flatMap(Guild::getChannels)
                     .filter(guildChannel -> guildChannel instanceof TextChannel)
+                    .filter(guildChannel -> {
+                        PermissionSet permissions = guildChannel.getEffectivePermissions(client.getSelfId().get()).block();
+                        return (permissions.contains(Permission.READ_MESSAGE_HISTORY) && permissions.contains(Permission.SEND_MESSAGES) && permissions.contains(Permission.VIEW_CHANNEL));
+                    })
                     .map(guildChannel -> (TextChannel) guildChannel)
                     .flatMap(textChannel -> textChannel.getMessagesBefore(Snowflake.of(Instant.now())))
-                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent())
+                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent() && message.getAuthor().isPresent())
                     .subscribe(databaseHandler::addMessage);
 
             client.getEventDispatcher().on(MessageCreateEvent.class)
                     .map(MessageCreateEvent::getMessage)
-                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent())
+                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent() && message.getAuthor().isPresent())
                     .map(databaseHandler::addMessage)
                     .filter(message -> message.getContent().get().toLowerCase().startsWith("&kat")) // if message is a request:
-                    .map(message -> databaseHandler.queryDatabase(message, client, message.getChannel()))
-                    .subscribe(message -> log.info("Successfully sent output."));
+                    .subscribe(message -> databaseHandler.queryDatabase(message, client, message.getChannel()));
 
             // get eventDispatcher for deleted messages to remove them from the database
             client.getEventDispatcher().on(MessageDeleteEvent.class)
@@ -209,10 +237,10 @@ public class ChatKat {
 
             // log client in and block so that main thread doesn't exit until instructed.
             client.login().block();
-
         } catch (Exception e) {
             log.error(e.toString());
         } finally {
+            log.info("Closing up shop.");
             client.logout();
             databaseHandler.close();
         }
