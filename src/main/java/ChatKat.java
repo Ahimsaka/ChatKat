@@ -28,7 +28,9 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClientResponse;
 
 /* InfluxDB: See: https://github.com/influxdata/influxdb-java/blob/master/MANUAL.md
   Note: influxdb-java is used due to ease of configuration with influxDB 1.x, which is used because
@@ -43,14 +45,18 @@ public class ChatKat {
         try (InputStream propStream = new FileInputStream("src" + File.separator + "main" + File.separator + "resources" + File.separator + "config.properties")) {
             properties.load(propStream);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Error inside properties stream " + e.getMessage());
             return;
         }
 
         // setup database handler convenience class
         final class DatabaseHandler {
             InfluxDB influxDB;
-            BatchPoints batchPoints;
+            BatchPoints updateBatch;
+            BatchPoints backfillBatch;
+            DiscordClient client;
+            List<Snowflake> backfilledChannels = new ArrayList<>();
+
             // create HashMap for parsing time parameters
             HashMap<String, Instant> setInterval = new HashMap<>(4){{
                 put("year", ZonedDateTime.now().minusYears(1).toInstant());
@@ -59,7 +65,8 @@ public class ChatKat {
                 put("day", ZonedDateTime.now().minusDays(1).toInstant());
             }};
 
-            DatabaseHandler() {
+            DatabaseHandler(DiscordClient client) {
+                this.client = client;
                 // initialize database connection
                 this.influxDB = InfluxDBFactory.connect(properties.getProperty("serverURL"),
                         properties.getProperty("databaseUser"),
@@ -70,41 +77,74 @@ public class ChatKat {
                 // enable writing data in batches & set up exception handler to log failed data points
                 this.influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler(
                         (failedPoints, throwable) -> failedPoints.forEach(p -> {
-                            log.error(p.toString());
+                            log.error("Error inside influxDB enableBatch exception handler  " + p.toString());
                         }))
                 );
                 // initialize BatchPoints object for batch writes.
-                this.batchPoints = BatchPoints.database(properties.getProperty("databaseName")).build();
+                this.updateBatch = BatchPoints.database(properties.getProperty("databaseName")).build();
+                this.backfillBatch = BatchPoints.database(properties.getProperty("databaseName")).build();
             }
-            // convenience method to avoid manipulating object properties directly
+
+            /* accept pre-filtered TextChannel, perform a history search, and store the resulting disposable
+            *  in a HashMap keyed by the guildID. Check if subscription has emitted to throttle output prior to
+            *  backfill. */
+            private TextChannel backfillChannel(TextChannel channel){
+                Snowflake channelID = channel.getId();
+                channel.getMessagesBefore(Snowflake.of(Instant.now()))
+                        .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent()
+                                && message.getAuthor().isPresent())
+                        .map(message -> this.addMessage(message, backfillBatch))
+                        .doOnError(error -> log.info("error :  " + error.getMessage()))
+                        .doOnTerminate(() -> {
+                            this.backfilledChannels.add(channelID);
+                            this.writeBatch(this.backfillBatch);
+                        })
+                        .subscribe();
+                return channel;
+            }
+
             private void writeBatch() {
-                try {
-                    this.influxDB.write(this.batchPoints);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
+                this.writeBatch(this.updateBatch);
+                this.writeBatch(this.backfillBatch);
+            }
+
+            // convenience method to avoid manipulating object properties directly
+            private void writeBatch(BatchPoints batchPoints) {
+                if (!batchPoints.getPoints().isEmpty()) {
+
+                    try {
+                        this.influxDB.write(batchPoints);
+                    } catch (Exception e) {
+                        log.error("Error inside writeBatch " + e.getCause().getMessage());
+                    }
                 }
             }
             // convenience method for creating username or tag reference in query output string
-            private String getUserLabel(String authorID, DiscordClient client, Snowflake guildID, Boolean setTags) {
-                return client.getUserById(Snowflake.of(authorID)).map(author -> {
+            private String getUserLabel(String authorID, Snowflake guildID, Boolean setTags) {
+                return this.client.getUserById(Snowflake.of(authorID)).map(author -> {
                     if (setTags) {
                         return author.getMention();
                     } try {
                         return author.asMember(guildID).block().getDisplayName();
                     } catch (Exception e) {
-                        log.error(e.getMessage());
                         return author.getUsername();
                     }
                 }).block();
             }
 
+            /* adding second BatchPoints to segregate backfill from forward recording. This method uses
+            * method overloading to preserve the original function will enabling the new BatchPoints */
             private Message addMessage(Message message) {
+                return addMessage(message, this.updateBatch);
+            }
+
+            private Message addMessage(Message message, BatchPoints batch) {
                 /* fetch channelID, authorID as strings to use as and tag values
                    **numerical strings break the query, so prepend character to each */
                     String channelID = "c" + message.getChannelId().asString(),
                         authorID = "a" + message.getAuthor().get().getId().asString();
                 // add message data to batch
-                this.batchPoints.point(Point.measurement("messages")
+                batch.point(Point.measurement("messages")
                         .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .tag("channelID", channelID)
                         .tag("authorID", authorID)
@@ -112,6 +152,7 @@ public class ChatKat {
                         .build());
                 return message;
             }
+
             private void deleteMessage(MessageDeleteEvent event) {
                 long messageTime = event.getMessageId().getTimestamp().toEpochMilli();
                 String channelID = "c" + event.getChannelId().asString();
@@ -122,7 +163,7 @@ public class ChatKat {
                         + " AND time = " + messageTime + "ms")).getResults().get(0).getSeries().get(0).getValues().get(0).get(2).toString();
 
                 // lazy delete. wait to write to database until this.queryDatabase()
-                this.batchPoints.point(Point.measurement("messages")
+                this.updateBatch.point(Point.measurement("messages")
                         .time(messageTime, TimeUnit.MILLISECONDS)
                         .tag("channelID", channelID)
                         .tag("authorID", authorID)
@@ -130,30 +171,34 @@ public class ChatKat {
                         .build());
             }
 
+            private Message queryDatabase(Message message, Mono<MessageChannel> channelMono) {
+                TextChannel channel = (TextChannel) channelMono.block();
+                if (!this.backfilledChannels.contains(channel.getId()))
+                    return channel.createMessage("I'm on my break, henny. Check back in 5.").block();
 
-            private Message queryDatabase(Message message, DiscordClient client, Mono<MessageChannel> channelMono) {
-                MessageChannel channel = channelMono.block();
                 // write batchPoints to clear cache - ensures that all messages up to request will be included
-                this.writeBatch();
+                this.writeBatch(this.updateBatch);
+
                 // fetch channelID to use in query
                 String channelID = "c" + message.getChannelId().asString();
-                // get guildId to get author's guild nickname/tag
-                Snowflake guildID = message.getGuild().block().getId();
                 // get params, if any
                 String request = message.getContent().get();
+                // get guildID to fetch tag/guild nickname
+                Snowflake guildID = channel.getGuildId();
 
-                // set default @mention option - true except if debug
+                // set default @mention option - true except if -tag is called in params
                 boolean setTags = false;
                 // set default interval (long 0 will be interpreted as Epoch time 0 which is like 1970)
                 long interval = 0;
+
+                // initialize helper class to count indexes inside of output processing stream
                 class Counter {
                     int value;
                     Counter() {
-                        value = 0;
+                        value = 1;
                     }
-                    int inc() {
+                    void inc() {
                         this.value = this.value + 1;
-                        return this.value;
                     }
                     String val() {
                         return String.valueOf(this.value);
@@ -178,19 +223,21 @@ public class ChatKat {
                         + " WHERE channelID = '" + channelID + "'"
                         + "AND time >= " + interval + "ms"
                         + " GROUP BY authorID"
-                )).getResults().get(0).getSeries().stream()
-                        .sorted((seriesA, seriesB) -> (int)((Double) seriesB.getValues().get(0).get(1) - (Double) seriesA.getValues().get(0).get(1)))
+                        ))
+                        .getResults().get(0).getSeries()
+                        .stream()
+                        /* influxDB schema formally expects a generic Object. We know it will be a Double.
+                         * so we have to cast it to a double, perform the operation, and then cast to an int for the sort */
+                        .sorted((seriesA, seriesB) -> (int) ((Double) seriesB.getValues().get(0).get(1) - (Double) seriesA.getValues().get(0).get(1)))
                         .forEachOrdered(series -> {
-                            i.inc();
-
-                            output.append(i.val()).append(".").append(new String(new char[5 - i.val().length()]).replace("\0", " "))
-                            .append(this.getUserLabel(series.getTags().get("authorID").substring(1), client, guildID, tags))
+                            output.append(i.val()).append(".").append(new String(new char[3 - i.val().length()]).replace("\0", " "))
+                            .append(this.getUserLabel(series.getTags().get("authorID").substring(1), guildID, tags))
                             .append(" sent **") // surround # output with ** to bold the text
                             // append # of messages found
                             .append(series.getValues().get(0).get(1).toString().split("\\.")[0])
                             .append("** messages. \n");
+                            i.inc();
                         });
-                log.info(output.toString());
                 return channel.createMessage(output.toString()).block();
             }
 
@@ -201,8 +248,8 @@ public class ChatKat {
         }
 
         // initialize DatabaseHandler object and DiscordClient
-        final DatabaseHandler databaseHandler = new DatabaseHandler();
         final DiscordClient client = DiscordClientBuilder.create(System.getenv("BOT_TOKEN")).build();
+        final DatabaseHandler databaseHandler = new DatabaseHandler(client);
 
         try {
             // Get an event dispatcher for readyEvent on login
@@ -220,16 +267,15 @@ public class ChatKat {
                         return (permissions.contains(Permission.READ_MESSAGE_HISTORY) && permissions.contains(Permission.SEND_MESSAGES) && permissions.contains(Permission.VIEW_CHANNEL));
                     })
                     .map(guildChannel -> (TextChannel) guildChannel)
-                    .flatMap(textChannel -> textChannel.getMessagesBefore(Snowflake.of(Instant.now())))
-                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent() && message.getAuthor().isPresent())
-                    .subscribe(databaseHandler::addMessage);
+                    .map(databaseHandler::backfillChannel)
+                    .subscribe();
 
             client.getEventDispatcher().on(MessageCreateEvent.class)
                     .map(MessageCreateEvent::getMessage)
                     .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent() && message.getAuthor().isPresent())
                     .map(databaseHandler::addMessage)
                     .filter(message -> message.getContent().get().toLowerCase().startsWith("&kat")) // if message is a request:
-                    .subscribe(message -> databaseHandler.queryDatabase(message, client, message.getChannel()));
+                    .subscribe(message -> databaseHandler.queryDatabase(message, message.getChannel()));
 
             // get eventDispatcher for deleted messages to remove them from the database
             client.getEventDispatcher().on(MessageDeleteEvent.class)
