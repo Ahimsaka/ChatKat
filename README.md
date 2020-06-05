@@ -15,3 +15,5 @@ NOTES:
     the most recent messages, adding each to the batchPoints object synchronously. Since a request 
     writes batchPoints to the database, the unnecessary messages pulled from 
     discord waste processing time, but won't delay output or alter results.
+
+

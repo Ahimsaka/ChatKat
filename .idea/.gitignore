@@ -1,5 +1,8 @@
 # Created by https://www.gitignore.io/api/java,gradle
 
+#ignore debug file
+*.csv
+
 #ignore config file (private token stored here)
 /src/main/resources/config.properties
 

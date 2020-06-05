@@ -16,21 +16,15 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
-import org.influxdb.dto.QueryResult;
 
 import java.io.*;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClientResponse;
 
 /* InfluxDB: See: https://github.com/influxdata/influxdb-java/blob/master/MANUAL.md
   Note: influxdb-java is used due to ease of configuration with influxDB 1.x, which is used because
@@ -59,6 +53,7 @@ public class ChatKat {
             BatchPoints updateBatch;
             DiscordClient client;
             List<Snowflake> backfilledChannels = new ArrayList<>();
+            Debugger debugger = null;
 
             // create HashMap for parsing time parameters
             HashMap<String, Instant> setInterval = new HashMap<>(4){{
@@ -69,6 +64,9 @@ public class ChatKat {
             }};
 
             DatabaseHandler(DiscordClient client) {
+                if (System.getenv("DEBUG").toLowerCase().equals("true"))
+                    this.debugger = new Debugger();
+
                 this.client = client;
                 // initialize database connection
                 this.influxDB = InfluxDBFactory.connect(properties.getProperty("serverURL"),
@@ -94,14 +92,14 @@ public class ChatKat {
 
                 // initialize BatchPoints object for each channel to avoid conflicts during simultaneous processing
                 BatchPoints channelBatch = BatchPoints.database(properties.getProperty("databaseName")).build();
-
                 Snowflake channelID = channel.getId();
 
                 channel.getMessagesBefore(Snowflake.of(Instant.now()))
-                        .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent()
+                        .filter(message -> !message.getAuthor().get().isBot()
+                                //&& message.getContent().isPresent()
                                 && message.getAuthor().isPresent())
                         .map(message -> this.addMessage(message, channelBatch))
-                        .doOnError(error -> log.info("error :  " + error.getMessage()))
+                        .doOnError(error -> log.error("Error in Add Message :  " + error.getMessage() + "\n"))
                         .doOnTerminate(() -> {
                             this.backfilledChannels.add(channelID);
                             this.writeBatch(channelBatch);
@@ -141,16 +139,27 @@ public class ChatKat {
             }
 
             private Message addMessage(Message message, BatchPoints batch) {
+                if (debugger != null) {
+                    debugger.addMessage(message);
+                }
+
                 /* fetch channelID, authorID as strings to use as and tag values
                    **numerical strings break the query, so prepend character to each */
                     String channelID = "c" + message.getChannelId().asString(),
                         authorID = "a" + message.getAuthor().get().getId().asString();
+                    int isValid;
+
+                    if (message.getContent().isPresent()) {
+                        isValid = 1;
+                    } else {
+                        isValid = 0;
+                    }
                 // add message data to batch
                 batch.point(Point.measurement("messages")
                         .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .tag("channelID", channelID)
                         .tag("authorID", authorID)
-                        .addField("isValid", 1)
+                        .addField("isValid", isValid)
                         .build());
                 return message;
             }
@@ -177,6 +186,10 @@ public class ChatKat {
             }
 
             private Message queryDatabase(Message message) {
+                if (debugger != null){
+                    debugger.close();
+                    System.setProperty("DEBUG","false");
+                }
                 // create helper class to count indexes inside of output processing stream
                 class Counter {
                     int value;
@@ -257,6 +270,7 @@ public class ChatKat {
 
             public void close() {
                 this.writeBatch(this.updateBatch);
+                if (this.debugger != null) this.debugger.close();
                 this.influxDB.close();
             }
         }
@@ -287,7 +301,9 @@ public class ChatKat {
             // get MessageCreateEvent dispatcher to count incoming messages.
             client.getEventDispatcher().on(MessageCreateEvent.class)
                     .map(MessageCreateEvent::getMessage)
-                    .filter(message -> !message.getAuthor().get().isBot() && message.getContent().isPresent() && message.getAuthor().isPresent())
+                    .filter(message -> !message.getAuthor().get().isBot()
+                            //&& message.getContent().isPresent()
+                            && message.getAuthor().isPresent())
                     .map(databaseHandler::addMessage)
                     .filter(message -> message.getContent().get().toLowerCase().startsWith("&kat")) // if message is a request:
                     .subscribe(databaseHandler::queryDatabase);
@@ -299,7 +315,7 @@ public class ChatKat {
             // log client in and block so that main thread doesn't exit until instructed.
             client.login().block();
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Error in out try: " + e.toString());
         } finally {
             log.info("Closing up shop.");
             client.logout();
@@ -307,3 +323,4 @@ public class ChatKat {
         }
     }
 }
+
