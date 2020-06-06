@@ -6,7 +6,7 @@ response time with minimal storage/memory burden.
 
 As designed, she stores her influxDB in a docker container on the local host,
 that is open on port 8086. This can easily be changed by adjusting the url string 
-in ChatKat/src/main/resources/config.properties
+in ChatKat/src/main/resources/config.properties .
 
 
 Type "&kat" in any channel ChatKat has read and create message permissions to, she'll return a scoreboard
