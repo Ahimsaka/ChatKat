@@ -9,6 +9,24 @@ that is open on port 8086. This can easily be changed by adjusting the url strin
 in ChatKat/src/main/resources/config.properties
 
 
+Type "&kat" in any channel ChatKat has read and create message permissions to, she'll return a scoreboard
+
+The default search returns results for the same channel as the request, but you can add a "-server" or 
+"-guild" to include results for every available channel on the server.
+
+Include "-day", "-week", "-month", or "-year" in the message to get a count for a shorter interval.
+
+If you're the server's owner, you can also use "-tag" to mention all the users on the list.
+
+ChatKat can record messages for any servers with where she has permission to read message history and view channel. 
+(But she does need send message permission in the channel where the request arrives, or she won't do a thing).
+
+
+The Debugger tool can be used to generate a csv file of all available metadata for any messages
+present in the available channels at launch. It will continue to write to the .csv file until 
+receiving a query in Discord (a message beginning with "&kat").
+
+
 NOTES:
     - currently, ChatKat backfills the database every time she is restarted. 
     This should be unnecessary, but has minimal effect. The backfill process starts with 
