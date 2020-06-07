@@ -158,7 +158,7 @@ public class DatabaseHandler {
      * */
     class OutputBuilder {
         // create HashMap for parsing time parameters
-        HashMap<String, Instant> setInterval = new HashMap<>(4){{
+        HashMap<String, Instant> setInterval = new HashMap<String, Instant>(4){{
             put("-year", ZonedDateTime.now().minusYears(1).toInstant());
             put("-month", ZonedDateTime.now().minusMonths(1).toInstant());
             put("-week", ZonedDateTime.now().minusWeeks(1).toInstant());

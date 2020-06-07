@@ -1,7 +1,9 @@
 plugins {
     id 'java'
     id 'idea'
+    id 'com.avast.gradle.docker-compose' version '0.7.1'
 }
+
 
 version '1.0.0'
 
@@ -20,4 +22,8 @@ dependencies {
 task run(type: JavaExec, dependsOn: classes) {
     main = 'chatkat'
     classpath = sourceSets.main.runtimeClasspath
+}
+
+dockerCompose {
+    useComposeFiles=['docker-compose.yml']
 }
