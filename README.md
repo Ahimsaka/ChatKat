@@ -100,6 +100,7 @@ Note that the message is unaffected by non-parameter text that occurs after **&k
 
 ![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output-horseplay.png?raw=true)
 
+
 ### Additional parameters: 
 
 All additional parameters must be placed after "&kat" and are preceded by a hyphen. 
