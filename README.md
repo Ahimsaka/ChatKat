@@ -11,7 +11,7 @@ To run this bot, you will need:
 
 [Both  can be obtained via the discord developer portal](https://discord.com/developers/). You'll need to log in to your discord account,
  create a new Application for the client ID, and add a Bot to the application to obtain the bot token. 
-You can also configure your bots username and icon. 
+You can also configure your bot's username and icon. 
  
 Use this link (while signed in to a Discord account) to invite the bot to servers: 
 * https://discordapp.com/oauth2/authorize?client_id=CLIENTID&scope=bot
@@ -21,8 +21,8 @@ To see and count messages in a channel, your bot will need permissions to
 * View Channel  
 * Read Message History
 
-Additionally, she will only respond to requests sent in channels where
-she has *Send Message* permission set. Without that permission, she can still read and count messages in that channel 
+The bot will only respond to requests sent in channels where
+she has **Send Message** permission set. Without it, she can still read and count messages in that channel 
 for full server output requests. 
  
 ### Run Via Docker-Compose (Recommended):
@@ -88,11 +88,11 @@ If a message begins with "&kat" and has no other applicable parameters, it will 
 responds with a ranked list of the number of posts entered by all users in the channel where the request is received.
 
 ![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
-![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
-
 
 Note that the message can contain any other 
-non-parameter text. As long as it begins with &kat. Additional text is ignored, except if it includes a parameter. 
+non-parameter text: 
+
+![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output-horseplay.png?raw=true)
 
 #### Additional parameters: 
 
@@ -144,28 +144,25 @@ When using ChatKat in a live discord server, you will notice discrepancies betwe
 search using the Discord app search bar tool and the number of messages reported by ChatKat. 
 
 For performance reasons, the official Discord App stores searchable metadata in a separate database from message history. 
-The database that stores the search meta-data is less reliable than the message history database. Regular discord users will
-have already noticed that the search bar is sometimes unavailable, though the channels are unaffected. Messages sent while the 
-search database is unavailable are not retroactively added to the search database when it comes back online. 
+The search metadata database is less reliable than the message history database. Regular discord users will already know 
+that the search bar is sometimes unavailable, but sending and reading new messages in channels are unaffected. Messages 
+sent while the search database is down are not retroactively added when it comes back online, so they don't show up in 
+searches via the search bar.
 
 Fortunately for us, ChatKat uses the full message history database. In any instance where the Discord App search bar 
 reports a lower number than ChatKat, ChatKat is right. 
 
-When the development of ChatKat began, the developer was not aware of this design trade-off in Discord. To figure out 
+When development of ChatKat began, the developer was not aware of this design trade-off in Discord. To determine 
 why the numbers reported by the bot did not match the numbers reported by the search bar, it was necessary to
-design a debugging tool to help compare the messages present in the channel with the messages found and counted by the bot.
-This simple debugging tool writes all available metadata for all messages seen by the bot to a timestamped .csv file located 
-at `ChatKat/src/main/resources/debug_files/`. This csv file includes unique message IDs, message text, and timestamps, and any other
-information required to manually check the channel and confirm that all messages counted by the bot do exist, even those 
-that are not visible to the search bar. 
-
-If you would like to test these results for yourself (or if you would like to generate such a csv file for your own purposes), 
-simply run the bot with an environment variable DEBUG=true. 
+design a debugging tool to aid in compare the messages present in the channel with the messages found and counted by the bot.
+This simple tool writes available metadata for all available messages to a timestamped .csv file located at 
+`ChatKat/src/main/resources/debug_files/`. This file contains sufficient information to manually confirm that all messages
+counted do exist in the channels where they are counted. 
 
 ![debugger output csv example](https://github.com/Ahimsaka/ChatKat/blob/media/debugger-csv.png?raw=true)
 
-Because ChatKat continues processing messages indefinitely as long as it runs, the Debug tool is configured to stop writing 
-(and flush its cache) when it receives any "&kat" command. 
+If you would like to test these results for yourself (or if you would like to generate such a csv file for your own purposes), 
+simply run the bot with an environment variable DEBUG=true. 
 
 Note that using the debugger tool while running in a Docker container will write output inside the container. 
 It is easier to access the csv if you run the bot directly on the local host. Follow these steps: 
@@ -175,6 +172,9 @@ It is easier to access the csv if you run the bot directly on the local host. Fo
 - set environment variable DEBUG=true
 - open terminal window and navigate to project directory. 
 - `./gradlew run`
+- Because ChatKat continues processing messages indefinitely as long as it runs, the Debug tool is configured to stop writing 
+  (and flush its cache) when it receives any "&kat" command. If no command arrives, the csv will not 
+  include the full record. 
 
 (Alternately, you may find it easier to run the code from an IDE and handle environment variables through the IDE's settings)
 
