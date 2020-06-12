@@ -1,5 +1,8 @@
 # Created by https://www.gitignore.io/api/java,gradle
 
+# ignore media files in master branch
+/media/
+
 #ignore debug file
 *.csv
 
