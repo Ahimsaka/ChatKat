@@ -100,11 +100,11 @@ Note that the message is unaffected by non-parameter text that occurs after **&k
 
 ![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output-horseplay.png?raw=true)
 
-#### Additional parameters: 
+### Additional parameters: 
 
 All additional parameters must be placed after "&kat" and are preceded by a hyphen. 
 
-##### -help:
+#### -help:
 
 Causes the bot to send a simple help message in the channel. This parameter overrides any other parameters. 
 
@@ -113,7 +113,7 @@ Causes the bot to send a simple help message in the channel. This parameter over
 ![help output example](https://github.com/Ahimsaka/ChatKat/blob/media/help.png?raw=true) 
 ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png?raw=true)
 
-##### -server or -guild
+#### -server or -guild
 
 Causes the bot to send a cumulative scoreboard that containing the sum of results from all available channels on the discord 
 server/guild hosts the channel where the request posts.
@@ -122,7 +122,7 @@ server/guild hosts the channel where the request posts.
 
 By default, this scoreboard includes the full history of the channel, but it can be combined with any time frame parameter.
 
-##### Time frame Parameters
+#### Time frame Parameters
  
 - -year
 - -month
@@ -142,7 +142,7 @@ When **-server** and a timeframe parameter are both included, the order does not
 ![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png?raw=true)
 ![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png?raw=true)
 
-##### -tags or -tag
+#### -tags or -tag
 
 This parameter can be combined with any other parameters (except -help) to @mention the discord users in the output. 
 
