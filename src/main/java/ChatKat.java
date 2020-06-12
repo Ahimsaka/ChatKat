@@ -50,8 +50,7 @@ public class ChatKat {
                         return (permissions.contains(Permission.READ_MESSAGE_HISTORY) && permissions.contains(Permission.VIEW_CHANNEL));
                     })
                     .map(guildChannel -> (TextChannel) guildChannel)
-                    .map(databaseHandler::backfillChannel)
-                    .subscribe();
+                    .subscribe(databaseHandler::backfillChannel);
 
             // get MessageCreateEvent dispatcher to count incoming messages.
             client.getEventDispatcher().on(MessageCreateEvent.class)
@@ -62,7 +61,7 @@ public class ChatKat {
                     .map(databaseHandler::addMessage)
                     .filter(message -> message.getContent().get().toLowerCase().startsWith("&kat"))
                     // if message is a request:
-                    .subscribe(databaseHandler::parseRequest);
+                    .subscribe(databaseHandler::processRequest);
 
             // get eventDispatcher for deleted messages to remove them from the database
             client.getEventDispatcher().on(MessageDeleteEvent.class)
