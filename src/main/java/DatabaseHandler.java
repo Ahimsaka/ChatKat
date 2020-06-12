@@ -180,6 +180,10 @@ public class DatabaseHandler {
                 .block().contains(Permission.SEND_MESSAGES))
             return;
 
+        /* the results are usually going to come in fast, so you might not see this often
+         * but we'll tell the channel the bot is "typing" for the aesthetic touch */
+        channel.type();
+
         // write batchPoints to ensure results are up to date
         this.writeBatch(this.batchPoints);
 
