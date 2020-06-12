@@ -1,9 +1,9 @@
-ChatKat is the ULTIMATE Discord4j message counting solution, an application with infinite power, and a dear friend. 
+# ChatKat is the ULTIMATE Discord4j message counting solution, and a dear friend. 
 
 She is configured to store message history in an influxDB 1.8 tsdb, reducing response time with minimal storage/memory 
 burden. 
 
-#Basic setup: 
+# Basic setup: 
 
 To run this bot, you will need: 
 * Discord bot token 
@@ -15,19 +15,17 @@ You can also configure your bots username and icon.
  
 Use this link (while signed in to a Discord account) to invite the bot to servers: 
 * https://discordapp.com/oauth2/authorize?client_id=CLIENTID&scope=bot
+* Be sure to replace "CLIENTID" with the client ID generated for your Discord application. 
 
-Be sure to replace "CLIENTID" with the client ID generated for your Discord application. 
-
-To see and count messages in a channel, your bot will need to be invited with
-permissions to 
+To see and count messages in a channel, your bot will need permissions to 
 * View Channel  
 * Read Message History
 
 Additionally, she will only respond to requests sent in channels where
-she has Send Message permission. If she does not have Send Message permission in a channel
- she can still include it in full server/guild scoreboard output. 
+she has *Send Message* permission set. Without that permission, she can still read and count messages in that channel 
+for full server output requests. 
  
-## Via Docker-Compose (Recommended):
+### Run Via Docker-Compose (Recommended):
 
 The recommended usage of this bot is via docker-compose, which generates two docker containers: one for the bot, and a 
 second which runs the default influxDB 1.8 docker image. To use this method you'll need:
@@ -42,7 +40,7 @@ After the image build is complete, in the same terminal window (or another windo
 
   `docker-compose up`
         
-### Using a Separate Database:
+### Run Using a Separate Database:
 
 If you wish to configure the bot to run with a separate database, instead of using docker-compose, you can easily
 do so by editing the databaseName, databaseUser, databasePass, and databaseURL properties found in the config.properties 
@@ -55,7 +53,7 @@ After you've made the changes, open a terminal window and navigate to the projec
 
 `docker build -t chatkat --build-arg BOT_TOKEN="YOUR BOT TOKEN" . `
  
-### Using without Docker:
+### Run Without Docker:
 
 To run the bot without docker, follow the steps for configuring a separate database and ensure that config.properties is 
 pointed to the database. The database must be running first, or the bot will exit with an error. 
@@ -66,14 +64,14 @@ Open a terminal window and navigate to the project directory. Then launch the bo
 
 `./gradlew run`
 
-# Interacting with the Bot
+# Interacting with the Bot on Discord
 
-## On Startup
+## Startup
 As soon as the bot is running it will populate the database with message history from all available channels and 
-servers. If the bot recieves a request in a channel before it has finished reviewing that channel's history, it will 
+servers. If the bot receives a request in a channel before it has finished reviewing that channel's history, it will 
 respond with a delay message.
 
-![delay message example](https://github.com/Ahimsaka/ChatKat/blob/media/delay-message.png?raw=true)
+![delay message example](https://github.com/Ahimsaka/ChattyKathy/blob/media/delay-message.png?raw=true)
 
 Note that the bot processes channels on parallel threads.  Scores for channels with shorter histories will not be
  delayed by channels with longer histories. 
@@ -82,14 +80,16 @@ Note that the bot processes channels on parallel threads.  Scores for channels w
 
 Commands may be entered into the discord chat for any text channel in which ChatKat has the correct permissions (View Channel, Read Message History, Send Messages).
 
-All commands for this bot must begin with "&kat"
+All commands begin with "&kat"
 
 ### &kat (Default):
 
-If a message begins with &kat and has no other applicable parameters, it will be treated as the default. The bot 
+If a message begins with "&kat" and has no other applicable parameters, it will be treated as the default. The bot 
 responds with a ranked list of the number of posts entered by all users in the channel where the request is received.
 
-![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
+![basic output example](https://github.com/Ahimsaka/ChattyKathy/blob/media/basic-output.png?raw=true)
+![basic output example with horseplay](https://github.com/Ahimsaka/ChattyKathy/blob/media/basic-output.png?raw=true)
+
 
 Note that the message can contain any other 
 non-parameter text. As long as it begins with &kat. Additional text is ignored, except if it includes a parameter. 
@@ -104,7 +104,7 @@ Causes the bot to send a simple help message in the channel. This parameter over
 
 `&kat -help`
 
-![help output example](https://github.com/Ahimsaka/ChatKat/blob/media/help.png?raw=true) ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png?raw=true)
+![help output example](https://github.com/Ahimsaka/ChattyKathy/blob/media/help.png?raw=true) ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png?raw=true)
 
 ##### -server or -guild
 
@@ -113,7 +113,7 @@ which the request is received. Output is sent in the same channel as the request
 
 By default, this scoreboard includes the full history of the channel. -server and -guild can be combined with any date-range parameter.
 
-![full server default example](https://github.com/Ahimsaka/ChatKat/blob/media/default-server.png?raw=true)
+![full server default example](https://github.com/Ahimsaka/ChattyKathy/blob/media/default-server.png?raw=true)
 
 
 ##### Time frame Parameters
@@ -126,15 +126,15 @@ By default, this scoreboard includes the full history of the channel. -server an
 Any time frame parameter can be added to a default "&kat" to augment output for a single channel, or combined with 
 -server or -guild to augment output for the full guild. If multiple parameters are used, they can be used in any order. 
 
-![single channel and day and week examples](https://github.com/Ahimsaka/ChatKat/blob/media/default-day-week.png?raw=true) 
-![single channel month example](https://github.com/Ahimsaka/ChatKat/blob/media/default-month.png?raw=true)
-![single channel year example](https://github.com/Ahimsaka/ChatKat/blob/media/default-year.png?raw=true)
-![full server year example](https://github.com/Ahimsaka/ChatKat/blob/media/server-year.png?raw=true)
+![single channel and day and week examples](https://github.com/Ahimsaka/ChattyKathy/blob/media/default-day-week.png?raw=true) 
+![single channel month example](https://github.com/Ahimsaka/ChattyKathy/blob/media/default-month.png?raw=true)
+![single channel year example](https://github.com/Ahimsaka/ChattyKathy/blob/media/default-year.png?raw=true)
+![full server year example](https://github.com/Ahimsaka/ChattyKathy/blob/media/server-year.png?raw=true)
 
 When -server and a timeframe parameter are combined, the order is not considered.
 
-![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png?raw=true)
-![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png?raw=true)
+![day then full server example](https://github.com/Ahimsaka/ChattyKathy/blob/media/day-server.png?raw=true)
+![full server then day example](https://github.com/Ahimsaka/ChattyKathy/blob/media/server-day.png?raw=true)
 
 
 ## Discord Search Bar Conflicts & Debugger Tool
@@ -161,7 +161,7 @@ that are not visible to the search bar.
 If you would like to test these results for yourself (or if you would like to generate such a csv file for your own purposes), 
 simply run the bot with an environment variable DEBUG=true. 
 
-![debugger output csv example](https://github.com/Ahimsaka/ChatKat/blob/media/debugger-csv.png?raw=true)
+![debugger output csv example](https://github.com/Ahimsaka/ChattyKathy/blob/media/debugger-csv.png?raw=true)
 
 Because ChatKat continues processing messages indefinitely as long as it runs, the Debug tool is configured to stop writing 
 (and flush its cache) when it receives any "&kat" command. 
