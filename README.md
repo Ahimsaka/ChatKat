@@ -49,14 +49,20 @@ file, located at `ChatKat/src/main/java/resources/config.properties`.
 Your database must run InfluxDB 1.8 (or a compatible earlier build). 
 **ChatKat does not work with InfluxDB 2.x**. For more information, see the [influxdb-java library documentation.](https://github.com/influxdata/influxdb-java/blob/master/MANUAL.md)
 
-After you've made the changes, open a terminal window and navigate to the project directory. Then:
+After you've made the changes, rebuild the docker image. Open a terminal window and navigate to the project directory, then:
 
 `docker build -t chatkat --build-arg BOT_TOKEN="YOUR BOT TOKEN" . `
+
+Instead of docker-compose run the new image with docker and make it available on port 80 for HTTP messages:
+
+`docker run -p 80:80 chatkat`
  
 ### Run Without Docker:
 
-To run the bot without docker, follow the steps for configuring a separate database and ensure that config.properties is 
-pointed to the database. The database must be running first, or the bot will exit with an error. 
+While not recommended, it is possible to run the bot without using docker. 
+
+First, follow the steps listed above for configuring a separate database. The database must be running first, 
+or the bot will exit with an error. 
 
 Next, set an environment variable of BOT_TOKEN="Your Bot Token".  
 
@@ -67,7 +73,7 @@ Open a terminal window and navigate to the project directory. Then launch the bo
 # Interacting with the Bot on Discord
 
 ## Startup
-As soon as the bot is running it will populate the database with message history from all available channels and 
+When the bot starts it will begin to populate the database with message history from all available channels and 
 servers. If the bot receives a request in a channel before it has finished reviewing that channel's history, it will 
 respond with a delay message.
 
@@ -76,27 +82,27 @@ respond with a delay message.
 Note that the bot processes channels on parallel threads.  Scores for channels with shorter histories will not be
  delayed by channels with longer histories. 
 
-## Commands (Case Insensitive):
+## Commands (All Commands are Case Insensitive):
 
-Commands may be entered into the discord chat for any text channel in which ChatKat has the correct permissions (View Channel, Read Message History, Send Messages).
+The bot receives commands in the discord chat for any text channel in which ChatKat has the correct permissions 
+(View Channel, Read Message History, Send Messages).
 
-All commands begin with "&kat"
+All commands begin with **&kat**
 
 ### &kat (Default):
 
-If a message begins with "&kat" and has no other applicable parameters, it will be treated as the default. The bot 
+If a message begins with **&kat** and has no other applicable parameters, it will be treated as the default. The bot 
 responds with a ranked list of the number of posts entered by all users in the channel where the request is received.
 
 ![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
 
-Note that the message can contain any other 
-non-parameter text: 
+Note that the message is unaffected by non-parameter text that occurs after **&kat**: 
 
 ![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output-horseplay.png?raw=true)
 
 #### Additional parameters: 
 
-All additional parameters must be placed after "&kat" and be preceded by a hyphen. 
+All additional parameters must be placed after "&kat" and are preceded by a hyphen. 
 
 ##### -help:
 
@@ -109,13 +115,12 @@ Causes the bot to send a simple help message in the channel. This parameter over
 
 ##### -server or -guild
 
-Causes the bot to send a cumulative scoreboard that includes results from all available channels on the discord server/guild in 
-which the request is received. Output is sent in the same channel as the request. 
-
-By default, this scoreboard includes the full history of the channel. -server and -guild can be combined with any date-range parameter.
+Causes the bot to send a cumulative scoreboard that containing the sum of results from all available channels on the discord 
+server/guild hosts the channel where the request posts.
 
 ![full server default example](https://github.com/Ahimsaka/ChatKat/blob/media/default-server.png?raw=true)
 
+By default, this scoreboard includes the full history of the channel, but it can be combined with any time frame parameter.
 
 ##### Time frame Parameters
  
@@ -124,15 +129,15 @@ By default, this scoreboard includes the full history of the channel. -server an
 - -week
 - -day
 
-Any time frame parameter can be added to a default "&kat" to augment output for a single channel, or combined with 
--server or -guild to augment output for the full guild. If multiple parameters are used, they can be used in any order. 
+Any time frame parameter can be added to a default **&kat** request to augment output for a single channel, or combined with 
+**-server** or **-guild** to augment output for the full guild. 
 
 ![single channel and day and week examples](https://github.com/Ahimsaka/ChatKat/blob/media/default-day-week.png?raw=true) 
 ![single channel month example](https://github.com/Ahimsaka/ChatKat/blob/media/default-month.png?raw=true)
 ![single channel year example](https://github.com/Ahimsaka/ChatKat/blob/media/default-year.png?raw=true)
 ![full server year example](https://github.com/Ahimsaka/ChatKat/blob/media/server-year.png?raw=true)
 
-When -server and a timeframe parameter are combined, the order is not considered.
+When **-server** and a timeframe parameter are both included, the order does not alter the output.
 
 ![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png?raw=true)
 ![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png?raw=true)
@@ -141,30 +146,30 @@ When -server and a timeframe parameter are combined, the order is not considered
 
 This parameter can be combined with any other parameters (except -help) to @mention the discord users in the output. 
 
-To prevent abuse, the -tags/-tag parameter is only availabe to the server owner. If included by another user, it is ignored. 
+To prevent abuse, the -tags/-tag parameter is only available to the server owner. If included by another user, it is ignored. 
 
 ![default search with tags](https://github.com/Ahimsaka/ChatKat/blob/media/default-tags.png?raw=true)
 
 ## Discord Search Bar Conflicts & Debugger Tool
 
-When using ChatKat in a live discord server, you will notice discrepancies between the number of messages reported by a 
-search using the Discord app search bar tool and the number of messages reported by ChatKat. 
+When using ChatKat in a live Discord server, you will notice discrepancies between the number of messages reported by a 
+search using the Discord app search bar, and the number of messages reported by ChatKat. 
 
 For performance reasons, the official Discord App stores searchable metadata in a separate database from message history. 
 The search metadata database is less reliable than the message history database. Regular discord users will already know 
-that the search bar is sometimes unavailable, but sending and reading new messages in channels are unaffected. Messages 
-sent while the search database is down are not retroactively added when it comes back online, so they don't show up in 
-searches via the search bar.
+that the search bar is often unavailable at times when sending and reading new messages in channels is unaffected. Messages 
+sent while the search database is down are not retroactively added when it comes back online, so they don't ever show up in 
+the search bar.
 
 Fortunately for us, ChatKat uses the full message history database. In any instance where the Discord App search bar 
 reports a lower number than ChatKat, ChatKat is right. 
 
 When development of ChatKat began, the developer was not aware of this design trade-off in Discord. To determine 
-why the numbers reported by the bot did not match the numbers reported by the search bar, it was necessary to
-design a debugging tool to aid in compare the messages present in the channel with the messages found and counted by the bot.
-This simple tool writes available metadata for all available messages to a timestamped .csv file located at 
+why the numbers reported by the bot did not always match the numbers reported by the search bar, it was necessary to
+design a debugging tool to aid in comparing the messages present in the channel with the messages found and counted by the bot.
+This simple tool writes metadata for all available messages to a timestamped .csv file located at 
 `ChatKat/src/main/resources/debug_files/`. This file contains sufficient information to manually confirm that all messages
-counted do exist in the channels where they are counted. 
+counted do exist as valid messages in the channels where they are recorded. 
 
 ![debugger output csv example](https://github.com/Ahimsaka/ChatKat/blob/media/debugger-csv.png?raw=true)
 
@@ -179,9 +184,8 @@ It is easier to access the csv if you run the bot directly on the local host. Fo
 - set environment variable DEBUG=true
 - open terminal window and navigate to project directory. 
 - `./gradlew run`
-- Because ChatKat continues processing messages indefinitely as long as it runs, the Debug tool is configured to stop writing 
-  (and flush its cache) when it receives any "&kat" command. If no command arrives, the csv will not 
-  include the full record. 
+- Because ChatKat continues processing messages indefinitely while it runs, the Debug tool is configured to stop writing 
+  (and flush its cache) when it receives any "&kat" command. If no command arrives, the csv will not include the full record. 
 
 (Alternately, you may find it easier to run the code from an IDE and handle environment variables through the IDE's settings)
 
