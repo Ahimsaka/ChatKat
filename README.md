@@ -137,6 +137,13 @@ When -server and a timeframe parameter are combined, the order is not considered
 ![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png?raw=true)
 ![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png?raw=true)
 
+##### -tags or -tag
+
+This parameter can be combined with any other parameters (except -help) to @mention the discord users in the output. 
+
+To prevent abuse, the -tags/-tag parameter is only availabe to the server owner. If included by another user, it is ignored. 
+
+![default search with tags](https://github.com/Ahimsaka/ChatKat/blob/media/default-tags.png?raw=true)
 
 ## Discord Search Bar Conflicts & Debugger Tool
 
