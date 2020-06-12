@@ -73,7 +73,7 @@ As soon as the bot is running it will populate the database with message history
 servers. If the bot recieves a request in a channel before it has finished reviewing that channel's history, it will 
 respond with a delay message.
 
-![delay message example](https://github.com/Ahimsaka/ChatKat/blob/media/delay-message.png)
+![delay message example](https://github.com/Ahimsaka/ChatKat/blob/media/delay-message.png?raw=true)
 
 Note that the bot processes channels on parallel threads.  Scores for channels with shorter histories will not be
  delayed by channels with longer histories. 
@@ -89,7 +89,7 @@ All commands for this bot must begin with "&kat"
 If a message begins with &kat and has no other applicable parameters, it will be treated as the default. The bot 
 responds with a ranked list of the number of posts entered by all users in the channel where the request is received.
 
-![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png)
+![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
 
 Note that the message can contain any other 
 non-parameter text. As long as it begins with &kat. Additional text is ignored, except if it includes a parameter. 
@@ -104,7 +104,7 @@ Causes the bot to send a simple help message in the channel. This parameter over
 
 `&kat -help`
 
-![help output example](https://github.com/Ahimsaka/ChatKat/blob/media/help.png) ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png)
+![help output example](https://github.com/Ahimsaka/ChatKat/blob/media/help.png?raw=true) ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png?raw=true)
 
 ##### -server or -guild
 
@@ -113,7 +113,7 @@ which the request is received. Output is sent in the same channel as the request
 
 By default, this scoreboard includes the full history of the channel. -server and -guild can be combined with any date-range parameter.
 
-![full server default example](https://github.com/Ahimsaka/ChatKat/blob/media/default-server.png)
+![full server default example](https://github.com/Ahimsaka/ChatKat/blob/media/default-server.png?raw=true)
 
 
 ##### Time frame Parameters
@@ -126,15 +126,15 @@ By default, this scoreboard includes the full history of the channel. -server an
 Any time frame parameter can be added to a default "&kat" to augment output for a single channel, or combined with 
 -server or -guild to augment output for the full guild. If multiple parameters are used, they can be used in any order. 
 
-![single channel and day and week examples](https://github.com/Ahimsaka/ChatKat/blob/media/default-day-week.png) 
-![single channel month example](https://github.com/Ahimsaka/ChatKat/blob/media/default-month.png)
-![single channel year example](https://github.com/Ahimsaka/ChatKat/blob/media/default-year.png)
-![full server year example](https://github.com/Ahimsaka/ChatKat/blob/media/server-year.png)
+![single channel and day and week examples](https://github.com/Ahimsaka/ChatKat/blob/media/default-day-week.png?raw=true) 
+![single channel month example](https://github.com/Ahimsaka/ChatKat/blob/media/default-month.png?raw=true)
+![single channel year example](https://github.com/Ahimsaka/ChatKat/blob/media/default-year.png?raw=true)
+![full server year example](https://github.com/Ahimsaka/ChatKat/blob/media/server-year.png?raw=true)
 
 When -server and a timeframe parameter are combined, the order is not considered.
 
-![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png)
-![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png)
+![day then full server example](https://github.com/Ahimsaka/ChatKat/blob/media/day-server.png?raw=true)
+![full server then day example](https://github.com/Ahimsaka/ChatKat/blob/media/server-day.png?raw=true)
 
 
 ## Discord Search Bar Conflicts & Debugger Tool
@@ -161,9 +161,7 @@ that are not visible to the search bar.
 If you would like to test these results for yourself (or if you would like to generate such a csv file for your own purposes), 
 simply run the bot with an environment variable DEBUG=true. 
 
-![debugger output csv example](https://github.com/Ahimsaka/ChatKat/blob/media/debugger-csv.png)
-
-
+![debugger output csv example](https://github.com/Ahimsaka/ChatKat/blob/media/debugger-csv.png?raw=true)
 
 Because ChatKat continues processing messages indefinitely as long as it runs, the Debug tool is configured to stop writing 
 (and flush its cache) when it receives any "&kat" command. 
@@ -178,8 +176,6 @@ It is easier to access the csv if you run the bot directly on the local host. Fo
 - `./gradlew run`
 
 (Alternately, you may find it easier to run the code from an IDE and handle environment variables through the IDE's settings)
-
-## INSERT IMAGE OF A CSV I DONE MADE
 
 # Why InfluxDB 1.8?
 
