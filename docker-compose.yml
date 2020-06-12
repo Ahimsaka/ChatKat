@@ -1,0 +1,15 @@
+version: '3.3'
+services:
+  app:
+    image: chatkat:latest
+    ports:
+      - "80:80"
+
+  db:
+    image: influxdb:1.8
+    expose:
+      - "8086"
+    volumes:
+      - /var/lib/influxdb
+
+

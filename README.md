@@ -26,6 +26,12 @@ The Debugger tool can be used to generate a csv file of all available metadata f
 present in the available channels at launch. It will continue to write to the .csv file until 
 receiving a query in Discord (a message beginning with "&kat").
 
+Uses InfluxDB:1.8 with influxdb-java 2.19: See: https://github.com/influxdata/influxdb-java/blob/master/MANUAL.md
+  
+influxdb-java is used due to ease of configuration with influxDB 1.x, which is used because
+   this is a limited scope application and influxDB 2.x does not yet have an official dockerhub image.
+   For any further development, conversion to influxdb-client-java and InfluxDB 2.x should be considered. */
+
 
 NOTES:
     - currently, ChatKat backfills the database every time she is restarted. 
