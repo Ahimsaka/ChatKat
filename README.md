@@ -109,8 +109,6 @@ All additional parameters must be placed after "&kat" and are preceded by a hyph
 
 Causes the bot to send a simple help message in the channel. This parameter overrides any other parameters. 
 
-`&kat -help`
-
 ![help output example](https://github.com/Ahimsaka/ChatKat/blob/media/help.png?raw=true) 
 ![help-override](https://github.com/Ahimsaka/ChatKat/blob/media/help-override.png?raw=true)
 
