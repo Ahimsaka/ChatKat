@@ -53,7 +53,7 @@ After you've made the changes, rebuild the docker image. Open a terminal window 
 
 `docker build -t chatkat --build-arg BOT_TOKEN="YOUR BOT TOKEN" . `
 
-Instead of docker-compose run the new image with docker and make it available on port 80 for HTTP messages:
+Instead of using docker-compose, run the new image with docker and make it available on port 80 for HTTP messages:
 
 `docker run -p 80:80 chatkat`
  
@@ -61,21 +61,17 @@ Instead of docker-compose run the new image with docker and make it available on
 
 While not recommended, it is possible to run the bot without using docker. 
 
-First, follow the steps listed above for configuring a separate database. The database must be running first, 
-or the bot will exit with an error. 
-
-Next, set an environment variable of BOT_TOKEN="Your Bot Token".  
-
-Open a terminal window and navigate to the project directory. Then launch the bot via the terminal:
-
-`./gradlew run`
+* Follow the steps listed above for configuring a separate database. **The database must be running first, 
+or the bot will exit with an error.** 
+* Set an environment variable of BOT_TOKEN="Your Bot Token".  
+* Open a terminal window and navigate to the project directory. Then launch the bot via the terminal: `./gradlew run`
 
 # Interacting with the Bot on Discord
 
 ## Startup
-When the bot starts it will begin to populate the database with message history from all available channels and 
+When the bot launches it will begin to populate the database with message history from all available channels and 
 servers. If the bot receives a request in a channel before it has finished reviewing that channel's history, it will 
-respond with a delay message.
+respond with a delay message:
 
 ![delay message example](https://github.com/Ahimsaka/ChatKat/blob/media/delay-message.png?raw=true)
 
@@ -92,14 +88,13 @@ All commands begin with **&kat**
 ### &kat (Default):
 
 If a message begins with **&kat** and has no other applicable parameters, it will be treated as the default. The bot 
-responds with a ranked list of the number of posts entered by all users in the channel where the request is received.
+responds with a ranked list of the number of posts entered by all users in the channel where the request occurred.
 
 ![basic output example](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output.png?raw=true)
 
 Note that the message is unaffected by non-parameter text that occurs after **&kat**: 
 
 ![basic output example with horseplay](https://github.com/Ahimsaka/ChatKat/blob/media/basic-output-horseplay.png?raw=true)
-
 
 ### Additional parameters: 
 
@@ -114,8 +109,8 @@ Causes the bot to send a simple help message in the channel. This parameter over
 
 #### -server or -guild
 
-Causes the bot to send a cumulative scoreboard that containing the sum of results from all available channels on the discord 
-server/guild hosts the channel where the request posts.
+Causes the bot to send a cumulative scoreboard containing the sum of results from all available channels on the discord 
+server/guild that hosts the channel where the request occurred.
 
 ![full server default example](https://github.com/Ahimsaka/ChatKat/blob/media/default-server.png?raw=true)
 
