@@ -1,7 +1,7 @@
 # ChatKat is the ULTIMATE Discord4j message counting solution, and a dear friend. 
 
-She is configured to store message history in an influxDB 1.8 tsdb, reducing response time with minimal storage/memory 
-burden. 
+ChatKat is configured to store message history in an influxDB 1.8 tsdb, reducing response time with minimal storage/memory 
+burden. Development was made possible by [Discord4j, a comprehensive reactive library for development with the Discord Bot API](https://github.com/Discord4J/Discord4J).
 
 # Basic setup: 
 
