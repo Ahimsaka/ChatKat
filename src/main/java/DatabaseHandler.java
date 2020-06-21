@@ -12,11 +12,16 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
+import org.influxdb.dto.QueryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Flux;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,9 +47,10 @@ public class DatabaseHandler {
         this.influxDB = InfluxDBFactory.connect(properties.getProperty("databaseURL"),
                 properties.getProperty("databaseUser"),
                 properties.getProperty("databasePass"));
-        // idempotent query creates database if it doesn't exist
+
         this.influxDB.query(new Query("CREATE DATABASE " + properties.getProperty("databaseName")));
         this.influxDB.setDatabase(properties.getProperty("databaseName"));
+
         // enable writing data in batches & set up exception handler to log failed data points
         this.influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler(
                 (failedPoints, throwable) -> failedPoints.forEach(p -> {
@@ -89,12 +95,27 @@ public class DatabaseHandler {
         BatchPoints channelBatch = BatchPoints.database(properties.getProperty("databaseName")).build();
         Snowflake channelID = channel.getId();
         Snowflake guildID = channel.getGuildId();
+        Instant lastInput = null;
 
+        // Fetch last message in guild table and confirm that table exists
+        QueryResult getLast = influxDB.query(new Query(String.format("SELECT last(time) FROM g%s LIMIT 1", guildID.asString())));
+        if (getLast.getResults().get(0).getSeries() != null) {
+            lastInput = Instant.ofEpochMilli((long) getLast.getResults().get(0).getSeries().get(0).getValues().get(0).get(0));
+        }
+
+        // track which channels and guilds have been seen by backfiller.
         if (!backfilledChannels.containsKey(guildID)) backfilledChannels.put(guildID, new HashMap<>());
         backfilledChannels.get(guildID).put(channelID, false);
 
-        channel.getMessagesBefore(Snowflake.of(Instant.now()))
-                .filter(message -> !message.getAuthor().get().isBot()
+        Flux<Message> channelHistory;
+        /* if the table already exists, get messages after last entry. otherwise, get all messages*/
+        if (lastInput == null) {
+            channelHistory = channel.getMessagesBefore(Snowflake.of(Instant.now()));
+        } else {
+            channelHistory = channel.getMessagesAfter(Snowflake.of(lastInput));
+        }
+        // filter and backfill requested messages.
+        channelHistory.filter(message -> !message.getAuthor().get().isBot()
                         && message.getAuthor().isPresent())
                 .map(message -> this.addMessage(message, channelBatch))
                 .doOnError(error -> log.error("Error in backfillChannel during addMessage :  " + error.getMessage() + "\n"))
@@ -103,7 +124,6 @@ public class DatabaseHandler {
                     this.backfilledChannels.get(guildID).put(channelID, true);
                 })
                 .subscribe();
-        return;
     }
 
     /*  method overloading on addMessage allows ChatKat.java to call .map(databaseHandler::addMessage)
@@ -126,10 +146,9 @@ public class DatabaseHandler {
         int isValid = (message.getContent().isPresent()) ? 1 : 0;
 
         // add message data to batch
-        batch.point(Point.measurement("messages")
+        batch.point(Point.measurement(guildID)
                 .time(message.getTimestamp().toEpochMilli(), TimeUnit.MILLISECONDS)
                 .tag("channelID", channelID) // index channelID for channel based searches
-                .tag("guildID", guildID)     // index guildID for guild based searches
                 .tag("authorID", authorID)   // index authorID to group search output by author
                 .addField("isValid", isValid)   // field isValid stores 1 for valid message or 0 for deleted
                 .build());
@@ -147,16 +166,15 @@ public class DatabaseHandler {
 
         // discord4j doesn't serve authorID with delete events. fetch it from the database to get full tag set.
         String authorID = this.influxDB.query(new Query(
-                String.format("SELECT \"isValid\", \"authorID\" FROM messages WHERE channelID = '%s' AND time = %dms",
-                        channelID, messageTime)))
+                String.format("SELECT \"isValid\", \"authorID\" FROM %s WHERE channelID = '%s' AND time = %dms",
+                        guildID, channelID, messageTime)))
                 .getResults().get(0).getSeries().get(0).getValues().get(0).get(2).toString();
 
         // lazy delete. wait to write to database until this.queryDatabase()
-        this.batchPoints.point(Point.measurement("messages")
+        this.batchPoints.point(Point.measurement(guildID)
                 .time(messageTime, TimeUnit.MILLISECONDS)
                 .tag("channelID", channelID)
                 .tag("authorID", authorID)
-                .tag("guildID", guildID)
                 .addField("isValid", 0)
                 .build());
     }
@@ -214,7 +232,7 @@ public class DatabaseHandler {
                 & (!backfilledChannels.get(guildID).entrySet().stream().allMatch(channelSet -> channelSet.getValue().equals(true))))
             return "I'm on my smoke break, henny. Check back in a few.";
 
-        // Case 4 - request recieved in backfilled channel/server:
+        // Case 4 - request received in backfilled channel/server:
 
         /*  create HashMap for parsing time parameters. this is done inside the method to ensure that
         *  ZonedDateTime.now() equates to the moment of the request (or slightly after) */
@@ -242,11 +260,11 @@ public class DatabaseHandler {
 
         // String variable used to simplify query String.format(). if guild tag on, use GuildID, else channelID
         String queryKey = (requestParams.contains("-guild") || requestParams.contains("-server")) ?
-                String.format("guildID = 'g%s", guildID.asString()) :
-                String.format("channelID = 'c%s", channelID.asString());
+                "" :
+                String.format("channelID = 'c%s' AND", channelID.asString());
 
-        return influxDB.query(new Query(String.format("SELECT sum(\"isValid\") FROM messages WHERE %s' AND time >= %dms GROUP BY authorID",
-                queryKey, interval)))
+        return influxDB.query(new Query(String.format("SELECT sum(\"isValid\") FROM g%s WHERE %s time >= %dms GROUP BY authorID",
+                guildID.asString(), queryKey, interval)))
                 .getResults().get(0).getSeries().stream() // stream results to sort & parse
                 // influxDB schema formally expects a generic Object. cast to Double to prevent compiler errors.
                 .sorted((seriesA, seriesB) ->
